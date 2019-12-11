@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ SITENAME }} - Archive{% endblock %}
+{% block content %}
+{% set pageName = "archive" %}
+{% if MENUITEMS %}
+{% for title, link in MENUITEMS %}
+{% if title == "archive" %}
+    <div id="page_{{title}}" class="page" {% if title != pageName %}style="display: none"{% endif %}>
+      <div id="content_{{title}}" class="content {% if title == pageName %}ajaxHook{% endif %}">
+        <div id="ajax_content_{{title}}" class="ajax_content">
+          <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
+            {% for article in articles %}
+            <li class="list-style list-style-tiles" data-list="{{ article.date.strftime('%Y-%m-%d') }}" data-month="{{ article.date.strftime('%m') }}">
+              <a id="{{ article.slug }}" href="{{SITEURL}}/posts/{{ article.url }}" rel="bookmark" title="Permalink to {{ article.title|striptags }}">
+                <article class="hentry">
+                  <header>
+                    {{ article.date.strftime('%Y-%m-%d') }}<h3 class="entry-title">{{ article.title }}</h3>
+                  </header>
+                </article>
+              </a>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div id="page_{{title}}" class="page" {% if title != pageName %}style="display: none"{% endif %}>
+      <div id="content_{{title}}" class="content {% if title == pageName %}ajaxHook{% endif %}">
+        <script>
+          $("#content_{{title}}").load("{{ SITEURL }}{{ link }} #ajax_content_{{title}}");
+        </script>
+      </div>
+    </div>
+{% endif %}
+{% endfor %}
+{% endif %}
+
+    <!-- Animate to page -->
+    <script>
+    // Which page is this
+    whichPageActive = 2;
+    </script>
+    <!-- End Animate to page -->
+{% endblock %}
