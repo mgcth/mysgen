@@ -81,17 +81,20 @@ for post in posts:
 		posts[post].meta['url'] = postpath + '/index.html'
 		os.makedirs('output/posts/' + postpath, exist_ok=True)
 		with open('output/posts/' + posts[post].meta['url'], 'w') as file:
-			post_html = post_template.render(base_vars, article=posts[post], path=postpath, tags=tags, pages=pages, page='home', page_name="index")
+			post_html = post_template.render(base_vars, article=posts[post],
+				path=postpath, tags=tags, pages=pages, page='home', page_name="index")
 			file.write(post_html)
 
 		if posts[post].meta["image"]:
-			shutil.copyfile('content/images/' + posts[post].meta["image"], 'output/posts/' + postpath + '/' + posts[post].meta["image"])
+			shutil.copyfile('content/images/' + posts[post].meta["image"],
+				'output/posts/' + postpath + '/' + posts[post].meta["image"])
 
 # transform more metadata
 posts_metadata = sorted([posts[post].meta for post in posts], key = lambda i: i['date'], reverse=True)
 pages_metadata = [pages[page].meta for page in pages]
 
-home_html = home_template.render(base_vars, article=posts[posts_metadata[0]["path"]], path=posts_metadata[0]["path"].split(".")[0], tags=tags, pages=pages, page='home.md', page_name="index")
+home_html = home_template.render(base_vars, article=posts[posts_metadata[0]["path"]],
+	path=posts_metadata[0]["path"].split(".")[0], tags=tags, pages=pages, page='home.md', page_name="index")
 about_html = page_template.render(base_vars, pages=pages, page='about.md', page_name="about")
 archive_html = archive_template.render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
 
