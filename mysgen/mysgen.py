@@ -105,7 +105,7 @@ home_html = template['home'].render(base_vars, article=posts[posts_metadata[0]["
 	path=posts_metadata[0]["path"].split(".")[0], tags=posts_metadata[0]["tags"], pages=pages, page='home.md', page_name="index")
 
 about_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
-projects_html = template['page'].render(base_vars, articles=post_metadata_projects, pages=pages, page='projects.md', page_name="projects")
+projects_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='projects.md', page_name="projects")
 archive_html = template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
 
 with open('output/index.html', 'w') as file:

@@ -1,13 +1,9 @@
-<ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
-	{% for article in articles %}
-	<li class="list-style list-style-tiles" data-list="{{ article.date.strftime('%Y-%m-%d') }}" data-month="{{ article.date.strftime('%m') }}">
-	  <a id="{{ article.slug }}" href="{{SITEURL}}/posts/{{ article.url }}" rel="bookmark" title="Permalink to {{ article.title|striptags }}">
-	    <article class="hentry">
-	      <header>
-	        {{ article.date.strftime('%Y-%m-%d') }}<h3 class="entry-title">{{ article.title }}</h3>
-	      </header>
-	    </article>
-	  </a>
-	</li>
-	{% endfor %}
-</ol>
+<li class="list-style list-style-tiles" data-list="{{ article.date.strftime('%Y-%m-%d') }}" data-month="{{ article.date.strftime('%m') }}">
+  <a id="{{ article.slug }}" href="{{SITEURL}}/posts/{{ article.url }}" rel="bookmark" title="Permalink to {{ article.title|striptags }}">
+    <article class="hentry">
+      <header>
+        {{ article.date.strftime('%Y-%m-%d') }}<h3 class="entry-title">{{ article.title }}</h3>
+      </header>
+    </article>
+  </a>
+</li>

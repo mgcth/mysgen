@@ -11,9 +11,13 @@
         {% else %}
         <div id="ajax_content_{{ pages[title+".md"].meta.title.lower() }}" class="ajax_content">
           {% if title == "projects"%}
-          {% for article in articles %}
-          {% include 'archive_kernel.html' %}
-          {% endfor %}
+          <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
+            {% for article in articles %}
+            {% if article.category == "Projects" %}
+            {% include 'archive_kernel.html' %}
+            {% endif %}
+            {% endfor %}
+          </ol>
           {% else %}
           <h1 style="display: none">{{ pages[title+".md"].meta.title.lower() }}</h1>
           <div class="entry-content-page hyphenate">
