@@ -33,6 +33,13 @@ md_pars = markdown.Markdown(extensions=['meta'])
 ## jinja stuff
 env = Environment(loader=PackageLoader('mysgen', 'templates'), trim_blocks=True, lstrip_blocks=True)
 
+# create templates
+template = {}
+template['home'] = env.get_template('index.html')
+template['post'] = env.get_template('article.html')
+template['page'] = env.get_template('page.html')
+template['archive'] = env.get_template('archive.html')
+
 ## some helper functions
 def parse_metadata(meta):
 	for key, value in meta.items():
@@ -69,13 +76,6 @@ for page in pages:
 	base_vars['MENUITEMS'].append((name, '/' + name ))
 	base_vars['pagesAndMenu'].append(name)
 
-# create templates
-template = {}
-template['home'] = env.get_template('index.html')
-template['post'] = env.get_template('article.html')
-template['page'] = env.get_template('page.html')
-template['archive'] = env.get_template('archive.html')
-
 # transform some metadata
 #tags = [posts[post].meta['tags'] for post in posts_metadata]
 
@@ -100,17 +100,13 @@ posts_metadata = sorted([posts[post].meta for post in posts], key = lambda i: i[
 post_metadata_projects = list(filter(lambda x: x["category"] == "Projects", posts_metadata))
 pages_metadata = [pages[page].meta for page in pages]
 
+# set pages
 home_html = template['home'].render(base_vars, article=posts[posts_metadata[0]["path"]],
 	path=posts_metadata[0]["path"].split(".")[0], tags=posts_metadata[0]["tags"], pages=pages, page='home.md', page_name="index")
 
 about_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
 projects_html = template['page'].render(base_vars, articles=post_metadata_projects, pages=pages, page='projects.md', page_name="projects")
 archive_html = template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
-
-# page output
-#for page in base_vars['MENUITEMS']:
-#	with open('output' + page + '/index.html', 'w') as file:
-#		file.write()
 
 with open('output/index.html', 'w') as file:
 	file.write(home_html)
