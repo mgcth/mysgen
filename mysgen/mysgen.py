@@ -1,5 +1,6 @@
 # import libraries
-import os, shutil
+import os
+import shutil
 from datetime import datetime
 from dataclasses import dataclass
 import markdown
@@ -28,6 +29,9 @@ class Item:
 
 # read markdown metadata
 md_pars = markdown.Markdown(extensions=['meta'])
+
+## jinja stuff
+env = Environment(loader=PackageLoader('mysgen', 'templates'), trim_blocks=True, lstrip_blocks=True)
 
 ## some helper functions
 def parse_metadata(meta):
@@ -58,31 +62,33 @@ parse(posts, 'posts')
 # parse pages
 pages = {}
 parse(pages, 'pages')
-for k in pages:
-	name = k.split(".")[0]
+
+# add pages to menu
+for page in pages:
+	name = page.split(".")[0]
 	base_vars['MENUITEMS'].append((name, '/' + name ))
 	base_vars['pagesAndMenu'].append(name)
 
-## jinja
-env = Environment(loader=PackageLoader('mysgen', 'templates'), trim_blocks=True, lstrip_blocks=True)
-home_template = env.get_template('index.html')
-post_template = env.get_template('article.html')
-page_template = env.get_template('page.html')
-archive_template = env.get_template('archive.html')
+# create templates
+template = {}
+template['home'] = env.get_template('index.html')
+template['post'] = env.get_template('article.html')
+template['page'] = env.get_template('page.html')
+template['archive'] = env.get_template('archive.html')
 
 # transform some metadata
-posts_metadata = [posts[post].meta for post in posts]
-tags = [post['tags'] for post in posts_metadata]
+#tags = [posts[post].meta['tags'] for post in posts_metadata]
 
 # write posts
 for post in posts:
 	if posts[post].meta["status"] == 'published':
 		postpath = post.split(".")[0]
-		posts[post].meta['url'] = postpath + '/index.html'
+		posts[post].meta['url'] = postpath
+
 		os.makedirs('output/posts/' + postpath, exist_ok=True)
-		with open('output/posts/' + posts[post].meta['url'], 'w') as file:
-			post_html = post_template.render(base_vars, article=posts[post],
-				path=postpath, tags=tags, pages=pages, page='home', page_name="index")
+		with open('output/posts/' + postpath + '/index.html', 'w') as file:
+			post_html = template['post'].render(base_vars, article=posts[post],
+				path=postpath, tags=posts[post].meta['tags'], pages=pages, page='home', page_name="index")
 			file.write(post_html)
 
 		if posts[post].meta["image"]:
@@ -91,14 +97,21 @@ for post in posts:
 
 # transform more metadata
 posts_metadata = sorted([posts[post].meta for post in posts], key = lambda i: i['date'], reverse=True)
+post_metadata_projects = list(filter(lambda x: x["category"] == "Projects", posts_metadata))
 pages_metadata = [pages[page].meta for page in pages]
 
-home_html = home_template.render(base_vars, article=posts[posts_metadata[0]["path"]],
-	path=posts_metadata[0]["path"].split(".")[0], tags=tags, pages=pages, page='home.md', page_name="index")
-about_html = page_template.render(base_vars, pages=pages, page='about.md', page_name="about")
-archive_html = archive_template.render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
+home_html = template['home'].render(base_vars, article=posts[posts_metadata[0]["path"]],
+	path=posts_metadata[0]["path"].split(".")[0], tags=posts_metadata[0]["tags"], pages=pages, page='home.md', page_name="index")
 
-# hardcode file output
+about_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
+projects_html = template['page'].render(base_vars, articles=post_metadata_projects, pages=pages, page='projects.md', page_name="projects")
+archive_html = template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
+
+# page output
+#for page in base_vars['MENUITEMS']:
+#	with open('output' + page + '/index.html', 'w') as file:
+#		file.write()
+
 with open('output/index.html', 'w') as file:
 	file.write(home_html)
 
@@ -109,3 +122,7 @@ with open('output/about/index.html', 'w') as file:
 os.makedirs('output/archive', exist_ok=True)
 with open('output/archive/index.html', 'w') as file:
 	file.write(archive_html)
+
+os.makedirs('output/projects', exist_ok=True)
+with open('output/projects/index.html', 'w') as file:
+	file.write(projects_html)

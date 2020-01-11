@@ -10,9 +10,15 @@
         </script>
         {% else %}
         <div id="ajax_content_{{ pages[title+".md"].meta.title.lower() }}" class="ajax_content">
+          {% if title == "projects"%}
+          {% for article in articles %}
+          {% include 'archive_kernel.html' %}
+          {% endfor %}
+          {% else %}
           <h1 style="display: none">{{ pages[title+".md"].meta.title.lower() }}</h1>
           <div class="entry-content-page hyphenate">
             {{ pages[title+".md"].content }}
+          {% endif %}
           </div>
           <!-- This is ugly but I haven't found any better way of doing things! Can use JavaScript but users witout it will lose content. -->
         </div>
