@@ -97,7 +97,8 @@ for post in posts:
 
 # transform more metadata
 posts_metadata = sorted([posts[post].meta for post in posts], key = lambda i: i['date'], reverse=True)
-post_metadata_projects = list(filter(lambda x: x["category"] == "Projects", posts_metadata))
+posts_metadata = list(filter(lambda x: x["status"] == "published", posts_metadata))
+#post_metadata_projects = list(filter(lambda x: x["category"] == "Projects", posts_metadata))
 pages_metadata = [pages[page].meta for page in pages]
 
 # set pages
