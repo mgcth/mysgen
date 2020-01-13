@@ -3,7 +3,7 @@
 {% if MENUITEMS %}
 {% for title, link in MENUITEMS %}
     <div id="page_{{title}}" class="page" {% if title != page_name %}style="display: none"{% endif %}>
-      <div id="content_{{title}}" class="content">
+      <div id="content_{{title}}" class="content {% if title == page_name %}ajaxHook{% endif %}">
         {% if not (title + ".md" in pages.keys()) %}
         <script>
            $("#content_{{title}}").load("{{ SITEURL }}{{ link }} #ajax_content_{{title}}");
@@ -22,8 +22,8 @@
           <h1 style="display: none">{{ pages[title+".md"].meta.title.lower() }}</h1>
           <div class="entry-content-page hyphenate">
             {{ pages[title+".md"].content }}
-          {% endif %}
           </div>
+          {% endif %}
           <!-- This is ugly but I haven't found any better way of doing things! Can use JavaScript but users witout it will lose content. -->
         </div>
         {% endif %}
