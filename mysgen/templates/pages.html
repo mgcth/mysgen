@@ -1,9 +1,0 @@
-{% for p,v in pages.items() %}
-<div id="page_{{ v.meta.title.lower() }}" class="page" style="display: none;">
-  <div id="content_{{ v.meta.title.lower() }}" class="content {% if p == page %}ajaxHook{% endif %}">
-    <script>
-      $("#content_{{ v.meta.title }}").load("{{ SITEURL }}/{{ v.meta.url }} #page_{{ v.meta.title }} .ajaxHook" );
-    </script>
-  </div>
-</div>
-{% endfor %}
