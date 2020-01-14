@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block title %}{{ SITENAME }} - Archive{% endblock %}
 {% block content %}
 {% set pageName = "archive" %}
@@ -10,7 +10,7 @@
         <div id="ajax_content_{{title}}" class="ajax_content">
           <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
             {% for article in articles %}
-            {% include 'archive_kernel.html' %}
+            {% include 'base/archive_kernel.html' %}
             {% endfor %}
           </ol>
         </div>

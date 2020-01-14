@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 {% if MENUITEMS %}
 {% for title, link in MENUITEMS %}
@@ -14,7 +14,7 @@
           <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
             {% for article in articles %}
             {% if article.category == "Projects" %}
-            {% include 'archive_kernel.html' %}
+            {% include 'base/archive_kernel.html' %}
             {% endif %}
             {% endfor %}
           </ol>

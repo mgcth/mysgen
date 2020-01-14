@@ -14,10 +14,10 @@ base_vars = {
 	"PATH": 'content',
 	"TIMEZONE": 'Europe/Stockholm',
 	"DEFAULT_LANG": u'en-gb',
-
-	"MENUITEMS": [('home', ''), ('archive', '/archive')],
-
-	"DISPLAY_PAGES_ON_MENU": True,
+	"MENUITEMS": [('home', ''), ('archive', '/archive')], #default menu
+	"CONTENT": "content/",
+	"TEMPLATES": "templates/",
+	"OUTPUT": "output",
 	"pagesAndMenu": ["home", "archive"]
 }
 
@@ -33,13 +33,6 @@ md_pars = markdown.Markdown(extensions=['meta'])
 ## jinja stuff
 env = Environment(loader=PackageLoader('mysgen', 'templates'), trim_blocks=True, lstrip_blocks=True)
 
-# create templates
-template = {}
-template['home'] = env.get_template('index.html')
-template['post'] = env.get_template('article.html')
-template['page'] = env.get_template('page.html')
-template['archive'] = env.get_template('archive.html')
-
 ## some helper functions
 def parse_metadata(meta):
 	for key, value in meta.items():
@@ -54,8 +47,8 @@ def parse_metadata(meta):
 
 ## parse posts and pages
 def parse(what, path):
-	for item in os.listdir('content/' + path):
-		item_path = os.path.join('content/' + path, item)
+	for item in os.listdir(base_vars["CONTENT"] + "/" + path):
+		item_path = os.path.join(base_vars["CONTENT"] + "/" + path, item)
 
 		with open(item_path, 'r') as file:
 			content = md_pars.convert(file.read())
@@ -73,8 +66,15 @@ parse(pages, 'pages')
 # add pages to menu
 for page in pages:
 	name = page.split(".")[0]
-	base_vars['MENUITEMS'].append((name, '/' + name ))
+	base_vars['MENUITEMS'].append((name, "/" + name ))
 	base_vars['pagesAndMenu'].append(name)
+
+# create templates from html files in template folder
+template = {}
+for file in os.listdir(base_vars["TEMPLATES"]):
+	if os.path.isfile(os.path.join(base_vars["TEMPLATES"], file)):
+		page_type = file.split(".")[0]
+		template[page_type] = env.get_template(file)
 
 # transform some metadata
 #tags = [posts[post].meta['tags'] for post in posts_metadata]
@@ -85,41 +85,36 @@ for post in posts:
 		postpath = post.split(".")[0]
 		posts[post].meta['url'] = postpath
 
-		os.makedirs('output/posts/' + postpath, exist_ok=True)
-		with open('output/posts/' + postpath + '/index.html', 'w') as file:
-			post_html = template['post'].render(base_vars, article=posts[post],
+		os.makedirs(base_vars["OUTPUT"] + "/posts/" + postpath, exist_ok=True)
+		with open(base_vars["OUTPUT"] + "/posts/" + postpath + "/index.html", 'w') as file:
+			post_html = template["article"].render(base_vars, article=posts[post],
 				path=postpath, tags=posts[post].meta['tags'], pages=pages, page='home', page_name="index")
 			file.write(post_html)
 
 		if posts[post].meta["image"]:
 			shutil.copyfile('content/images/' + posts[post].meta["image"],
-				'output/posts/' + postpath + '/' + posts[post].meta["image"])
+				base_vars["OUTPUT"] + "/posts/" + postpath + '/' + posts[post].meta["image"])
 
 # transform more metadata
-posts_metadata = sorted([posts[post].meta for post in posts], key = lambda i: i['date'], reverse=True)
+posts_metadata = sorted([posts[post].meta for post in posts], key = lambda x: x['date'], reverse=True)
 posts_metadata = list(filter(lambda x: x["status"] == "published", posts_metadata))
 #post_metadata_projects = list(filter(lambda x: x["category"] == "Projects", posts_metadata))
 pages_metadata = [pages[page].meta for page in pages]
 
-# set pages
-home_html = template['home'].render(base_vars, article=posts[posts_metadata[0]["path"]],
+common_data = {
+	"pages": pages,
+	"articles": posts_metadata,
+}
+
+# set and write pages, simplify this?
+html = {}
+html["home"] = template['index'].render(base_vars, article=posts[posts_metadata[0]["path"]],
 	path=posts_metadata[0]["path"].split(".")[0], tags=posts_metadata[0]["tags"], pages=pages, page='home.md', page_name="index")
+html["archive"]= template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
+html["about"] = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
+html["projects"] = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='projects.md', page_name="projects")
 
-about_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
-projects_html = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='projects.md', page_name="projects")
-archive_html = template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
-
-with open('output/index.html', 'w') as file:
-	file.write(home_html)
-
-os.makedirs('output/about', exist_ok=True)
-with open('output/about/index.html', 'w') as file:
-	file.write(about_html)
-
-os.makedirs('output/archive', exist_ok=True)
-with open('output/archive/index.html', 'w') as file:
-	file.write(archive_html)
-
-os.makedirs('output/projects', exist_ok=True)
-with open('output/projects/index.html', 'w') as file:
-	file.write(projects_html)
+for item in base_vars["MENUITEMS"]:
+	folder = base_vars["OUTPUT"] + "/index.html" if not item[1] else base_vars["OUTPUT"] + item[1] + ".html"
+	with open(folder, 'w') as file:
+		file.write(html[item[0]])
