@@ -1,29 +1,29 @@
           <article class="article">
-            {% if article.meta.image %}
+            {% if articles.meta.image %}
             <figure>
-              <img class="post_image" src="{{SITEURL}}/posts/{{path}}/{{article.meta.image}}"/>
+              <img class="post_image" src="{{SITEURL}}/posts/{{path}}/{{articles.meta.image}}"/>
             </figure>
             {% endif %}
             <header>
-              <h1 class="entry-title">{{ article.meta.title }}</h1>
+              <h1 class="entry-title">{{ articles.meta.title }}</h1>
 
-              <span class="published" title="{{ article.meta.date.isoformat() }}">
-                {{ article.meta.date.strftime("%Y-%m-%d") }}
+              <span class="published" title="{{ articles.meta.date.isoformat() }}">
+                {{ articles.meta.date.strftime("%Y-%m-%d") }}
               </span>
-              <!-- {% if article.modified %}
-              <span class="modified" title="{{ article.modified.isoformat() }}">
-                Updated {{ article.modified.strftime("%Y-%m-%d") }} |
+              <!-- {% if articles.modified %}
+              <span class="modified" title="{{ articles.modified.isoformat() }}">
+                Updated {{ articles.modified.strftime("%Y-%m-%d") }} |
               </span>
               {% endif %}
               <span class="posted_in">
-                {{ article.meta.category }} |
-                {% for tag_ in range(0, article.meta.tags|length) %}
-                {% if tag_ == article.meta.tags|length - 1 %}
-                  {{ article.meta.tags[tag_] }}
-                {% elif tag_ == (article.meta.tags|length - 2) %}
-                  {{ article.meta.tags[tag_] }} |
+                {{ articles.meta.category }} |
+                {% for tag_ in range(0, articles.meta.tags|length) %}
+                {% if tag_ == articles.meta.tags|length - 1 %}
+                  {{ articles.meta.tags[tag_] }}
+                {% elif tag_ == (articles.meta.tags|length - 2) %}
+                  {{ articles.meta.tags[tag_] }} |
                 {% else %}
-                  {{ article.meta.tags[tag_] }} |
+                  {{ articles.meta.tags[tag_] }} |
                 {% endif %}
                 {% endfor %}
               </span> -->
@@ -31,7 +31,7 @@
             </header>
             <div class="article-content hyphenate">
               <div class="article_body">
-                {{ article.content }}
+                {{ articles.content }}
               </div>
             </div>
             <footer class="post-info"></footer>

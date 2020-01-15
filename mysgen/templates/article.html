@@ -2,15 +2,15 @@
 {% block head %}
 {{ super() }}
 
-{% for keyword in article.keywords %}
+{% for keyword in articles.keywords %}
 <meta name="keywords" contents="{{keyword}}" />
 {% endfor %}
 
-{% for description in article.description %}
+{% for description in articles.description %}
 <meta name="description" contents="{{description}}" />
 {% endfor %}
 
-{% for tag in article.meta.tags %}
+{% for tag in articles.meta.tags %}
 <meta name="tags" contents="{{tag}}" />
 {% endfor %}
 

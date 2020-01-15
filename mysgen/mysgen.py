@@ -6,7 +6,14 @@ from dataclasses import dataclass
 import markdown
 from jinja2 import Environment, PackageLoader
 
-## config
+MYSGEN = "mysgen"
+CONTENT = "content"
+TEMPLATES = "templates"
+OUTPUT = "output"
+HOME = "home"
+ARCHIVE = "archive"
+
+# config
 base_vars = {
 	"AUTHOR": u'Mladen Gibanica',
 	"SITENAME": u'mladen.gibanica.net',
@@ -14,13 +21,8 @@ base_vars = {
 	"PATH": 'content',
 	"TIMEZONE": 'Europe/Stockholm',
 	"DEFAULT_LANG": u'en-gb',
-	"MENUITEMS": [['home', ''], ['archive', '/archive']], #default menu
+	"MENUITEMS": [[HOME, ''], [ARCHIVE, '/' + ARCHIVE]], #default menu
 }
-
-MYSGEN = "mysgen"
-CONTENT = "content"
-TEMPLATES = "templates"
-OUTPUT = "output"
 
 # define post and page structure as item
 @dataclass
@@ -91,8 +93,8 @@ def main():
 
 			os.makedirs(OUTPUT + "/posts/" + postpath, exist_ok=True)
 			with open(OUTPUT + "/posts/" + postpath + "/index.html", 'w') as file:
-				post_html = template["article"].render(base_vars, article=posts[post],
-					path=postpath, tags=posts[post].meta['tags'], pages=pages, page='home', page_name="index")
+				post_html = template["article"].render(base_vars, articles=posts[post],
+					path=postpath, tags=posts[post].meta['tags'], pages=pages, page=HOME, page_name="index")
 				file.write(post_html)
 
 			if posts[post].meta["image"]:
@@ -107,18 +109,26 @@ def main():
 
 	# set and write fixed pages
 	html_pages = {}
-	html_pages["home"] = template['index'].render(base_vars, article=posts[posts_metadata[0]["path"]],
-		path=posts_metadata[0]["path"].split(".")[0], tags=posts_metadata[0]["tags"], pages=pages, page='home.md', page_name="index")
-	html_pages["archive"]= template['archive'].render(base_vars, articles=posts_metadata, pages=pages, page_name="archive")
+	base_vars["pages"] = pages
+	for page, link in base_vars["MENUITEMS"]:
+		pagetype = "page"
+		base_vars["articles"] = posts_metadata
 
-	# set and write dynamic pages
-	html_pages["about"] = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='about.md', page_name="about")
-	html_pages["projects"] = template['page'].render(base_vars, articles=posts_metadata, pages=pages, page='projects.md', page_name="projects")
+		if page == HOME:
+			page = "index"
+			pagetype = page
+			base_vars["articles"] = posts[posts_metadata[0]["path"]]
+		elif page == ARCHIVE:
+			pagetype = page
+		
+		base_vars["page"] = page + ".md"
+		base_vars["page_name"] = page
+		html_pages[page] = template[pagetype].render(base_vars)
 
-	for title, link in base_vars["MENUITEMS"]:
-		folder = OUTPUT + "/index.html" if not link else OUTPUT + link + ".html"
-		with open(folder, 'w') as file:
-			file.write(html_pages[title])
+		file = OUTPUT + "/index.html" if not link else OUTPUT + link + "/index.html"
+		os.makedirs(os.path.dirname(file), exist_ok=True)
+		with open(file, 'w') as f:
+			f.write(html_pages[page])
 
 if __name__ == '__main__':
     main()
