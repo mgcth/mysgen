@@ -11,6 +11,7 @@ CONTENT = "content"
 TEMPLATES = "templates"
 OUTPUT = "output"
 HOME = "home"
+INDEX = "index"
 ARCHIVE = "archive"
 
 # config
@@ -30,7 +31,7 @@ class Item:
 	meta: dict
 	content: str
 
-## some helper functions
+# some helper functions
 def parse_metadata(meta):
 	for key, value in meta.items():
 		if len(value) == 1:
@@ -42,9 +43,7 @@ def parse_metadata(meta):
 
 	return meta
 
-## parse posts and pages
 def parse(what, path):
-	# read markdown metadata
 	md_pars = markdown.Markdown(extensions=['meta'])
 
 	for item in os.listdir(CONTENT + "/" + path):
@@ -61,7 +60,6 @@ def build_menu(pages):
 		base_vars['MENUITEMS'].append([name, "/" + name])
 
 def define_env(template):
-	# jinja stuff
 	env = Environment(loader=PackageLoader(MYSGEN, TEMPLATES), trim_blocks=True, lstrip_blocks=True)
 
 	for file in os.listdir(TEMPLATES):
@@ -88,18 +86,18 @@ def main():
 	# write posts
 	for post in posts:
 		if posts[post].meta["status"] == 'published':
-			postpath = post.split(".")[0]
+			postpath = "/posts/" + post.split(".")[0]
 			posts[post].meta['url'] = postpath
 
-			os.makedirs(OUTPUT + "/posts/" + postpath, exist_ok=True)
-			with open(OUTPUT + "/posts/" + postpath + "/index.html", 'w') as file:
+			os.makedirs(OUTPUT + postpath, exist_ok=True)
+			with open(OUTPUT + postpath + "/index.html", 'w') as file:
 				post_html = template["article"].render(base_vars, articles=posts[post],
-					path=postpath, tags=posts[post].meta['tags'], pages=pages, page=HOME, page_name="index")
+					path=postpath, pages=pages, page=HOME, page_name=INDEX)
 				file.write(post_html)
 
 			if posts[post].meta["image"]:
-				shutil.copyfile('content/images/' + posts[post].meta["image"],
-					OUTPUT + "/posts/" + postpath + '/' + posts[post].meta["image"])
+				shutil.copyfile(CONTENT + '/images/' + posts[post].meta["image"],
+					OUTPUT + postpath + '/' + posts[post].meta["image"])
 
 	# transform more metadata
 	posts_metadata = sorted([posts[post].meta for post in posts], key = lambda x: x['date'], reverse=True)
