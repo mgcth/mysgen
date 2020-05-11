@@ -116,8 +116,8 @@ def main():
 					OUTPUT + postpath + '/' + posts[post].meta['image'])
 
 	# transform more metadata
-	posts_metadata = sorted([posts[post].meta for post in posts], key = lambda x: x['date'], reverse=True)
-	posts_metadata = [postmeta for postmeta in posts_metadata if postmeta['status'] == 'published']
+	posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']#.sort(key = lambda x: x['date'], reverse = True)
+	posts_metadata = sorted(posts_metadata, key = lambda x: x['date'], reverse = True)
 	pages_metadata = [pages[page].meta for page in pages]
 
 	# set and write fixed pages
