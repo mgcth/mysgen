@@ -8,6 +8,20 @@
     <div id="page_{{title}}" class="page" {% if title != pageName %}style="display: none"{% endif %}>
       <div id="content_{{title}}" class="content {% if title == pageName %}ajaxHook{% endif %}">
         <div id="ajax_content_{{title}}" class="ajax_content">
+          <!--<ol id="category-list" class="ordered-list" data-list-length="{{ ALLCATEGORIES|count }}">
+            {% for cat in ALLCATEGORIES %}
+            <li>
+              {{ cat }}
+            </li>
+            {% endfor %}
+          </ol>
+          <ol id="tag-list" class="ordered-list" data-list-length="{{ ALLTAGS|count }}">
+            {% for tag in ALLTAGS %}
+            <li>
+              {{ tag }}
+            </li>
+            {% endfor %}
+          </ol>-->
           <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
             {% for article in articles %}
             {% include 'base/archive_kernel.html' %}
