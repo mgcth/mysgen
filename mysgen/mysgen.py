@@ -17,6 +17,8 @@ ALLTAGS = []
 ALLCATEGORIES = []
 ABOUT = 'about.md'
 ABOUT_DATE = 'DATE_TIME'
+PROJECTS = 'projects'
+PERSONAL = 'personal'
 
 # config
 base_vars = {
@@ -26,7 +28,8 @@ base_vars = {
 	'PATH': 'content',
 	'TIMEZONE': 'Europe/Stockholm',
 	'DEFAULT_LANG': u'en-gb',
-	'MENUITEMS': [[HOME, ''], [ARCHIVE, '/' + ARCHIVE]], #default menu
+	'MENUITEMS': [[HOME, ''], [ARCHIVE, '/' + ARCHIVE],
+				 [PROJECTS, '/' + PROJECTS], [PERSONAL, '/' + PERSONAL]], #default menu
 }
 
 # define post and page structure as item
@@ -66,10 +69,12 @@ def parse(what, path):
 			what[item].meta['path'] = item
 
 def build_menu(pages):
+	names = [x[0] for x in base_vars['MENUITEMS']]
 	for page in pages:
 		name = page.split('.')[0]
-		base_vars['MENUITEMS'].append([name, '/' + name])
-		print(name)
+
+		if name not in names:
+			base_vars['MENUITEMS'].append([name, '/' + name])
 
 def define_env(template):
 	env = Environment(
