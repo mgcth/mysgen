@@ -21,32 +21,6 @@
     <link rel="stylesheet" type="text/css" href="{{ SITEURL }}/theme/css/noscript_style.css" />
   </noscript>
   <!-- End Load CSS -->
-  <!-- Feeds -->
-  {% if FEED_ALL_ATOM %}
-  <link href="{{ FEED_DOMAIN }}/{{ FEED_ALL_ATOM }}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Full Atom Feed" />
-  {% endif %}
-  {% if FEED_ALL_RSS %}
-  <link href="{{ FEED_DOMAIN }}/{{ FEED_ALL_RSS }}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Full RSS Feed" />
-  {% endif %}
-  {% if FEED_ATOM %}
-  <link href="{{ FEED_DOMAIN }}/{{ FEED_ATOM }}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Atom Feed" />
-  {% endif %}
-  {% if FEED_RSS %}
-  <link href="{{ FEED_DOMAIN }}/{{ FEED_RSS }}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} RSS Feed" />
-  {% endif %}
-  {% if CATEGORY_FEED_ATOM and category %}
-  <link href="{{ FEED_DOMAIN }}/{{ CATEGORY_FEED_ATOM|format(category.slug) }}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Categories Atom Feed" />
-  {% endif %}
-  {% if CATEGORY_FEED_RSS and category %}
-  <link href="{{ FEED_DOMAIN }}/{{ CATEGORY_FEED_RSS|format(category.slug) }}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Categories RSS Feed" />
-  {% endif %}
-  {% if TAG_FEED_ATOM and tag %}
-  <link href="{{ FEED_DOMAIN }}/{{ TAG_FEED_ATOM|format(tag.slug) }}" type="application/atom+xml" rel="alternate" title="{{ SITENAME }} Tags Atom Feed" />
-  {% endif %}
-  {% if TAG_FEED_RSS and tag %}
-  <link href="{{ FEED_DOMAIN }}/{{ TAG_FEED_RSS|format(tag.slug) }}" type="application/rss+xml" rel="alternate" title="{{ SITENAME }} Tags RSS Feed" />
-  {% endif %}
-  <!-- End Feeds -->
   {% endblock head %}
 </head>
 
@@ -82,8 +56,7 @@
   <!-- End Load and Share data -->
 
   <!-- Load jQuery -->
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-  <script>window.jquery || document.write('<script type="text/javascript" src="{{ SITEURL }}/theme/jquery/2.1.4/jquery.min.js">\x3C/script>')</script>
+  <script type="text/javascript" src="{{ SITEURL }}/theme/jquery/2.1.4/jquery.min.js"></script>
   <!-- End Load jQuery -->
   </div>
 
@@ -119,8 +92,7 @@
 
   <div class="dummyJS">
     <!-- Load Prefixfree -->
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js"></script>
-    <script>window.prism || document.write('<script type="text/javascript" src="{{ SITEURL }}/theme/prefixfree/1.0.7/prefixfree.min.js">\x3C/script>')</script>
+    <script type="text/javascript" src="{{ SITEURL }}/theme/prefixfree/1.0.7/prefixfree.min.js"></script>
     <!-- End Load Prefixfree -->
     <!-- Load Prism -->
     <script type="text/javascript" src="{{ SITEURL }}/theme/prism/0.0.1/prism.js"></script>
@@ -139,18 +111,38 @@
     <!-- Load MathJax -->
     <script type="text/x-mathjax-config">
     MathJax.Hub.Config({
-      messageStyle: "none",
       extensions: ["tex2jax.js"],
-      jax: ["input/TeX", "output/HTML-CSS"],
-      tex2jax: {
-        inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-        displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-        processEscapes: true
-      },
-      "HTML-CSS": { preferredFont: "STIX-Web" }
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+          inlineMath: [['$','$'],['\\(','\\)']],
+          displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+              processEscapes: true
+            },
+      "HTML-CSS": {
+        scale: 90,
+        availableFonts: ["TeX"]},
+        MMLorHTML: {prefer: "HTML"},
+      TeX: {
+        extensions: ["color.js","AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"]
+
+      }
+    });
+    MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
+      var VARIANT = MathJax.OutputJax["HTML-CSS"].FONTDATA.VARIANT;
+      VARIANT["normal"].fonts.unshift("MathJax_SansSerif");
+        VARIANT["bold"].fonts.unshift("MathJax_SansSerif-bold");
+        VARIANT["italic"].fonts.unshift("MathJax_SansSerif-italic");
+        VARIANT["-tex-mathit"].fonts.unshift("MathJax_SansSerif-italic");
+    });
+    MathJax.Hub.Register.StartupHook("SVG Jax Ready",function () {
+        var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;
+        VARIANT["normal"].fonts.unshift("MathJax_SansSerif");
+        VARIANT["bold"].fonts.unshift("MathJax_SansSerif-bold");
+        VARIANT["italic"].fonts.unshift("MathJax_SansSerif-italic");
+        VARIANT["-tex-mathit"].fonts.unshift("MathJax_SansSerif-italic");
     });
     </script>
-    <script type="text/javascript" src="cdnjs.cloudflare.com/ajax/libs/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML"></script>
     <!-- End Load MathJax -->
     <!-- Load three.js -->
     <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
@@ -174,12 +166,9 @@
       animatePage(whichPageActive);
 
       Prism.highlightAll();
-      MathJax.Hub.Typeset();
-      Hyphenator.run();
+      //MathJax.Hub.Typeset();
     });
     // End Page end
-
-
 
     // Pageload continue
     // When loaded, fade out loading div

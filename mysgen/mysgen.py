@@ -1,6 +1,5 @@
 # import libraries
-import os
-import shutil
+import os, shutil
 from datetime import datetime
 from dataclasses import dataclass
 
@@ -16,6 +15,8 @@ INDEXHTML = '/index.html'
 ARCHIVE = 'archive'
 ALLTAGS = []
 ALLCATEGORIES = []
+ABOUT = 'about.md'
+ABOUT_DATE = 'DATE_TIME'
 
 # config
 base_vars = {
@@ -34,7 +35,7 @@ class Item:
 	meta: dict
 	content: str
 
-# some helper functions
+# parse metadata
 def parse_metadata(meta):
 	for key, value in meta.items():
 		if value:
@@ -52,8 +53,9 @@ def parse_metadata(meta):
 
 	return meta
 
+# parse posts and pages
 def parse(what, path):
-	md_pars = markdown.Markdown(extensions = ['meta'])
+	md_pars = markdown.Markdown(extensions = ['meta', 'fenced_code', 'mdx_math'])
 
 	for item in os.listdir(CONTENT + '/' + path):
 		item_path = os.path.join(CONTENT + '/' + path, item)
@@ -67,6 +69,7 @@ def build_menu(pages):
 	for page in pages:
 		name = page.split('.')[0]
 		base_vars['MENUITEMS'].append([name, '/' + name])
+		print(name)
 
 def define_env(template):
 	env = Environment(
@@ -78,6 +81,13 @@ def define_env(template):
 		if os.path.isfile(os.path.join(TEMPLATES, file)):
 			page_type = file.split('.')[0]
 			template[page_type] = env.get_template(file)
+
+# plugin, generate date in about page from compilation
+def about_date(pages):
+	for page in pages:
+		if page == ABOUT:
+			date = datetime.now().strftime('%Y-%m-%d')
+			pages[page].content = pages[page].content.replace(ABOUT_DATE, date)
 
 def main():
 	# parse posts
@@ -91,6 +101,7 @@ def main():
 	# parse pages
 	pages = {}
 	parse(pages, 'pages')
+	about_date(pages)
 
 	# add pages to menu
 	build_menu(pages)
