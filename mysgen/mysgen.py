@@ -10,13 +10,13 @@ MYSGEN = 'mysgen'
 CONTENT = 'content'
 TEMPLATES = 'templates'
 OUTPUT = 'output'
-HOME = 'home'
 INDEXHTML = '/index.html'
-ARCHIVE = 'archive'
 ALLTAGS = []
 ALLCATEGORIES = []
-ABOUT = 'about.md'
-ABOUT_DATE = 'DATE_TIME'
+HOME = 'home'
+HOMEmd = 'home.md'
+HOME_DATE = 'DATE_TIME'
+ARCHIVE = 'archive'
 PROJECTS = 'projects'
 PERSONAL = 'personal'
 
@@ -87,12 +87,12 @@ def define_env(template):
 			page_type = file.split('.')[0]
 			template[page_type] = env.get_template(file)
 
-# plugin, generate date in about page from compilation
+# plugin, generate date in home page at compilation
 def about_date(pages):
 	for page in pages:
-		if page == ABOUT:
+		if page == HOMEmd:
 			date = datetime.now().strftime('%Y-%m-%d')
-			pages[page].content = pages[page].content.replace(ABOUT_DATE, date)
+			pages[page].content = pages[page].content.replace(HOME_DATE, date)
 
 def main():
 	# parse posts
