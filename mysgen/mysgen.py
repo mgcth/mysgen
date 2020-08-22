@@ -15,10 +15,11 @@ ALLTAGS = []
 ALLCATEGORIES = []
 HOME = 'home'
 HOMEmd = 'home.md'
-HOME_DATE = 'DATE_TIME'
+HOME_DATE = '{{DATE_TIME}}'
 ARCHIVE = 'archive'
 PROJECTS = 'projects'
 PERSONAL = 'personal'
+POST_URL = '{{POSTURL}}'
 
 # config
 base_vars = {
@@ -120,6 +121,16 @@ def main():
 		if posts[post].meta['status'] == 'published':
 			postpath = '/posts/' + post.split('.')[0]
 			posts[post].meta['url'] = postpath
+
+			# template in markdown, render by simple replace
+			if posts[post].content.find(POST_URL) > 0:
+				posts[post].content = posts[post].content.replace(
+						POST_URL, base_vars['SITEURL'] + postpath)
+
+				post_data = posts[post].meta['data'].split(', ')
+				for pdata in post_data:
+					shutil.copyfile(CONTENT + '/videos/' + pdata,
+						OUTPUT + postpath + '/' + pdata)
 
 			os.makedirs(OUTPUT + postpath, exist_ok = True)
 			with open(OUTPUT + postpath + INDEXHTML, 'w') as file:
