@@ -1,7 +1,8 @@
 """
 mysgen, a simple static site generator.
 """
-import os, shutil
+import os
+import shutil
 from datetime import datetime
 from dataclasses import dataclass
 import markdown
@@ -31,8 +32,12 @@ base_vars = {
     'PATH': 'content',
     'TIMEZONE': 'Europe/Stockholm',
     'DEFAULT_LANG': u'en-gb',
-    'MENUITEMS': [[HOME, ''], [ARCHIVE, '/' + ARCHIVE],
-                 [PROJECTS, '/' + PROJECTS], [PERSONAL, '/' + PERSONAL]], #default menu
+    'MENUITEMS': [
+        [HOME, ''],
+        [ARCHIVE, '/' + ARCHIVE],
+        [PROJECTS, '/' + PROJECTS],
+        [PERSONAL, '/' + PERSONAL]
+    ]
 }
 
 
@@ -65,12 +70,13 @@ def parse_metadata(meta):
 
     return meta
 
+
 # parse posts and pages
 def parse(what, path):
     """
     Parse posts and pages.
     """
-    md_pars = markdown.Markdown(extensions = ['meta', 'fenced_code', 'mdx_math'])
+    md_pars = markdown.Markdown(extensions=['meta', 'fenced_code', 'mdx_math'])
 
     for item in os.listdir(CONTENT + '/' + path):
         item_path = os.path.join(CONTENT + '/' + path, item)
@@ -92,15 +98,15 @@ def build_menu(pages):
         if name not in names:
             base_vars['MENUITEMS'].append([name, '/' + name])
 
+
 def define_env(template):
     """
     Define the Jinja enviroment.
     """
     env = Environment(
-        loader = FileSystemLoader(TEMPLATES),
-        #loader = PackageLoader(MYSGEN, TEMPLATES),
-        trim_blocks = True,
-        lstrip_blocks = True)
+        loader=FileSystemLoader(TEMPLATES),
+        trim_blocks=True,
+        lstrip_blocks=True)
 
     for file in os.listdir(TEMPLATES):
         if os.path.isfile(os.path.join(TEMPLATES, file)):
@@ -118,11 +124,12 @@ def about_date(pages):
             date = datetime.now().strftime('%Y-%m-%d')
             pages[page].content = pages[page].content.replace(HOME_DATE, date)
 
+
 def main():
     """
     mysgen main function.
     """
-    
+
     posts = {}
     parse(posts, 'posts')
 
@@ -152,25 +159,33 @@ def main():
                 for pdata in post_data:
                     cpdata = CONTENT + '/data/' + pdata
                     if os.path.isfile(cpdata):
-                        shutil.copyfil(cpdata,
+                        shutil.copyfil(
+                            cpdata,
                             OUTPUT + postpath + '/' + pdata)
                     else:
-                        shutil.copytree(cpdata,
+                        shutil.copytree(
+                            cpdata,
                             OUTPUT + postpath + '/')
-                    
-            os.makedirs(OUTPUT + postpath, exist_ok = True)
+
+            os.makedirs(OUTPUT + postpath, exist_ok=True)
             with open(OUTPUT + postpath + INDEXHTML, 'w') as file:
-                post_html = template['article'].render(base_vars, articles=posts[post],
-                    path=postpath, pages=pages, page=HOME, page_name='index')
+                post_html = template['article'].render(
+                    base_vars,
+                    articles=posts[post],
+                    path=postpath,
+                    pages=pages,
+                    page=HOME,
+                    page_name='index')
                 file.write(post_html)
 
             if posts[post].meta['image']:
-                shutil.copyfile(CONTENT + '/images/' + posts[post].meta['image'],
+                shutil.copyfile(
+                    CONTENT + '/images/' + posts[post].meta['image'],
                     OUTPUT + postpath + '/' + posts[post].meta['image'])
 
     # transform more metadata
-    posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']#.sort(key = lambda x: x['date'], reverse = True)
-    posts_metadata = sorted(posts_metadata, key = lambda x: x['date'], reverse = True)
+    posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']
+    posts_metadata = sorted(posts_metadata, key=lambda x: x['date'], reverse=True)
     pages_metadata = [pages[page].meta for page in pages]
 
     # set and write fixed pages
@@ -187,7 +202,7 @@ def main():
             base_vars['path'] = base_vars['articles'].meta['url'].split('.')[0]
         elif page == ARCHIVE:
             pagetype = page
-        
+
         base_vars['page'] = page + '.md'
         base_vars['page_name'] = page
         html_pages[page] = template[pagetype].render(base_vars)
