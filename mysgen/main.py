@@ -17,7 +17,7 @@ INDEXHTML = '/index.html'
 ALLTAGS = []
 ALLCATEGORIES = []
 HOME = 'home'
-HOMEmd = 'home.md'
+HOMEMD = 'home.md'
 HOME_DATE = '{{DATE_TIME}}'
 ARCHIVE = 'archive'
 PROJECTS = 'projects'
@@ -83,7 +83,10 @@ def parse(what, path):
 
         with open(item_path, 'r') as file:
             content = md_pars.convert(file.read())
-            what[item] = Item(meta=parse_metadata(md_pars.Meta), content=content)
+            what[item] = Item(
+                meta=parse_metadata(md_pars.Meta),
+                content=content
+            )
             what[item].meta['path'] = item
 
 
@@ -106,7 +109,8 @@ def define_env(template):
     env = Environment(
         loader=FileSystemLoader(TEMPLATES),
         trim_blocks=True,
-        lstrip_blocks=True)
+        lstrip_blocks=True
+        )
 
     for file in os.listdir(TEMPLATES):
         if os.path.isfile(os.path.join(TEMPLATES, file)):
@@ -120,7 +124,7 @@ def about_date(pages):
     Special about page, plugin.
     """
     for page in pages:
-        if page == HOMEmd:
+        if page == HOMEMD:
             date = datetime.now().strftime('%Y-%m-%d')
             pages[page].content = pages[page].content.replace(HOME_DATE, date)
 
@@ -129,7 +133,6 @@ def main():
     """
     mysgen main function.
     """
-
     posts = {}
     parse(posts, 'posts')
 
@@ -150,10 +153,10 @@ def main():
             postpath = '/posts/' + post.split('.')[0]
             posts[post].meta['url'] = postpath
 
-            # template in markdown, render by simple replace
             if posts[post].content.find(POST_URL) > 0:
                 posts[post].content = posts[post].content.replace(
-                        POST_URL, base_vars['SITEURL'] + postpath)
+                    POST_URL, base_vars['SITEURL'] + postpath
+                )
 
                 post_data = posts[post].meta['data'].split(', ')
                 for pdata in post_data:
@@ -161,11 +164,13 @@ def main():
                     if os.path.isfile(cpdata):
                         shutil.copyfil(
                             cpdata,
-                            OUTPUT + postpath + '/' + pdata)
+                            OUTPUT + postpath + '/' + pdata
+                        )
                     else:
                         shutil.copytree(
                             cpdata,
-                            OUTPUT + postpath + '/')
+                            OUTPUT + postpath + '/'
+                        )
 
             os.makedirs(OUTPUT + postpath, exist_ok=True)
             with open(OUTPUT + postpath + INDEXHTML, 'w') as file:
@@ -175,7 +180,8 @@ def main():
                     path=postpath,
                     pages=pages,
                     page=HOME,
-                    page_name='index')
+                    page_name='index'
+                )
                 file.write(post_html)
 
             if posts[post].meta['image']:
@@ -183,12 +189,10 @@ def main():
                     CONTENT + '/images/' + posts[post].meta['image'],
                     OUTPUT + postpath + '/' + posts[post].meta['image'])
 
-    # transform more metadata
     posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']
     posts_metadata = sorted(posts_metadata, key=lambda x: x['date'], reverse=True)
     pages_metadata = [pages[page].meta for page in pages]
 
-    # set and write fixed pages
     html_pages = {}
     base_vars['pages'] = pages
     for page, link in base_vars['MENUITEMS']:
