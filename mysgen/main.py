@@ -71,15 +71,14 @@ def parse_metadata(meta):
     return meta
 
 
-# parse posts and pages
 def parse(what, path):
     """
     Parse posts and pages.
     """
     md_pars = markdown.Markdown(extensions=['meta', 'fenced_code', 'mdx_math'])
 
-    for item in os.listdir(CONTENT + '/' + path):
-        item_path = os.path.join(CONTENT + '/' + path, item)
+    for item in os.listdir(os.path.join(CONTENT, path)):
+        item_path = os.path.join(os.path.join(CONTENT, path), item)
 
         with open(item_path, 'r') as file:
             content = md_pars.convert(file.read())
@@ -118,7 +117,6 @@ def define_env(template):
             template[page_type] = env.get_template(file)
 
 
-# plugin, generate date in home page at compilation
 def about_date(pages):
     """
     Special about page, plugin.
@@ -129,25 +127,10 @@ def about_date(pages):
             pages[page].content = pages[page].content.replace(HOME_DATE, date)
 
 
-def main():
+def process_posts(posts):
     """
-    mysgen main function.
+    Process all published posts.
     """
-    posts = {}
-    parse(posts, 'posts')
-
-    base_vars['ALLTAGS'] = set(ALLTAGS)
-    base_vars['ALLCATEGORIES'] = set(ALLCATEGORIES)
-
-    pages = {}
-    parse(pages, 'pages')
-    about_date(pages)
-
-    build_menu(pages)
-
-    template = {}
-    define_env(template)
-
     for post in posts:
         if posts[post].meta['status'] == 'published':
             postpath = '/posts/' + post.split('.')[0]
@@ -188,6 +171,28 @@ def main():
                 shutil.copyfile(
                     CONTENT + '/images/' + posts[post].meta['image'],
                     OUTPUT + postpath + '/' + posts[post].meta['image'])
+
+
+def main():
+    """
+    mysgen main function.
+    """
+    posts = {}
+    parse(posts, 'posts')
+
+    base_vars['ALLTAGS'] = set(ALLTAGS)
+    base_vars['ALLCATEGORIES'] = set(ALLCATEGORIES)
+
+    pages = {}
+    parse(pages, 'pages')
+    about_date(pages)
+
+    build_menu(pages)
+
+    template = {}
+    define_env(template)
+
+    process_posts(posts)
 
     posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']
     posts_metadata = sorted(posts_metadata, key=lambda x: x['date'], reverse=True)
