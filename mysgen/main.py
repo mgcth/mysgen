@@ -1,44 +1,16 @@
 """
-mysgen, a simple static site generator.
+mysgen, a simple static site generator in Python.
 """
 import os
 import shutil
+import json
 from datetime import datetime
 from dataclasses import dataclass
 import markdown
 from jinja2 import Environment, FileSystemLoader
 
-
-MYSGEN = 'mysgen'
-CONTENT = '../../site/content'
-TEMPLATES = '../../site/templates'
-OUTPUT = '../../site/output'
-INDEXHTML = '/index.html'
-ALLTAGS = []
-ALLCATEGORIES = []
-HOME = 'home'
-HOMEMD = 'home.md'
-HOME_DATE = '{{DATE_TIME}}'
-ARCHIVE = 'archive'
-PROJECTS = 'projects'
-PERSONAL = 'personal'
-POST_URL = '{{POSTURL}}'
-
-
-base_vars = {
-    'AUTHOR': u'Mladen Gibanica',
-    'SITENAME': u'mladen.gibanica.net',
-    'SITEURL': 'https://mladen.gibanica.net',
-    'PATH': 'content',
-    'TIMEZONE': 'Europe/Stockholm',
-    'DEFAULT_LANG': u'en-gb',
-    'MENUITEMS': [
-        [HOME, ''],
-        [ARCHIVE, '/' + ARCHIVE],
-        [PROJECTS, '/' + PROJECTS],
-        [PERSONAL, '/' + PERSONAL]
-    ]
-}
+# set config path based on this directory
+CONFIG_PATH = "../../site/config.json"
 
 
 @dataclass
@@ -46,187 +18,210 @@ class Item:
     """
     Dataclass holding post and page meta and content.
     """
+
     meta: dict
     content: str
 
 
-def parse_metadata(meta):
+class MySGEN:
     """
-    Parse metadata.
+    MySGEN class.
     """
-    for key, value in meta.items():
-        if value:
-            if key == 'date':
-                meta[key] = datetime.strptime(value.pop(), '%Y-%m-%d')
-            else:
-                meta[key] = value.pop()
 
-                if key == 'tags':
-                    meta[key] = meta[key].split(',')
-                    ALLTAGS.extend(meta[key])
+    def __init__(self):
+        """
+        Initialise MySGEN object.
+        """
+        self.template = {}
+        self.posts = []
+        self.pages = []
+        self.date = datetime.now().strftime("%Y-%m-%d")
 
-                if key == 'category':
-                    ALLCATEGORIES.append(meta[key])
+        self.set_base_config()
+        self.define_environment()
 
-    return meta
+    def set_base_config(self):
+        """
+        Set base configuration.
+        """
+        with open(CONFIG_PATH, "r") as file:
+            self.base = json.loads(file.read())
 
+        self.base["TAGS"] = {}
+        self.base["CATEGORIES"] = {}
 
-def parse(what, path):
-    """
-    Parse posts and pages.
-    """
-    md_pars = markdown.Markdown(extensions=['meta', 'fenced_code', 'mdx_math'])
-
-    for item in os.listdir(os.path.join(CONTENT, path)):
-        item_path = os.path.join(os.path.join(CONTENT, path), item)
-
-        with open(item_path, 'r') as file:
-            content = md_pars.convert(file.read())
-            what[item] = Item(
-                meta=parse_metadata(md_pars.Meta),
-                content=content
-            )
-            what[item].meta['path'] = item
-
-
-def build_menu(pages):
-    """
-    Build the main menu.
-    """
-    names = [x[0] for x in base_vars['MENUITEMS']]
-    for page in pages:
-        name = page.split('.')[0]
-
-        if name not in names:
-            base_vars['MENUITEMS'].append([name, '/' + name])
-
-
-def define_env(template):
-    """
-    Define the Jinja enviroment.
-    """
-    env = Environment(
-        loader=FileSystemLoader(TEMPLATES),
-        trim_blocks=True,
-        lstrip_blocks=True
+    def define_environment(self):
+        """
+        Define Jinja enviroment.
+        """
+        env = Environment(
+            loader=FileSystemLoader(self.base.TEMPLATES),
+            trim_blocks=True,
+            lstrip_blocks=True,
         )
 
-    for file in os.listdir(TEMPLATES):
-        if os.path.isfile(os.path.join(TEMPLATES, file)):
-            page_type = file.split('.')[0]
-            template[page_type] = env.get_template(file)
+        for file in os.listdir(self.base.TEMPLATES):
+            if os.path.isfile(os.path.join(self.base.TEMPLATES, file)):
+                page_type = file.split(".")[0]
+                self.template[page_type] = env.get_template(file)
 
+    def parse_metadata(self, meta):
+        """
+        Parse post and page metadata.
+        """
+        for key, value in meta.items():
+            if value:
+                if key == "date":
+                    meta[key] = datetime.strptime(value.pop(), "%Y-%m-%d")
+                else:
+                    meta[key] = value.pop()
 
-def about_date(pages):
-    """
-    Special about page, plugin.
-    """
-    for page in pages:
-        if page == HOMEMD:
-            date = datetime.now().strftime('%Y-%m-%d')
-            pages[page].content = pages[page].content.replace(HOME_DATE, date)
+                    if key == "tags":
+                        meta[key] = meta[key].split(",")
+                        self.base.TAGS.extend(meta[key])
 
+                    if key == "category":
+                        self.base.CATEGORIES.append(meta[key])
 
-def process_posts(posts):
-    """
-    Process all published posts.
-    """
-    for post in posts:
-        if posts[post].meta['status'] == 'published':
-            postpath = '/posts/' + post.split('.')[0]
-            posts[post].meta['url'] = postpath
+        return meta
 
-            if posts[post].content.find(POST_URL) > 0:
-                posts[post].content = posts[post].content.replace(
-                    POST_URL, base_vars['SITEURL'] + postpath
+    def parse(self, what, path):
+        """
+        Parse both posts and pages.
+        """
+        md_pars = markdown.Markdown(extensions=["meta", "fenced_code", "mdx_math"])
+
+        for item in os.listdir(os.path.join(self.base.CONTENT, path)):
+            item_path = os.path.join(os.path.join(self.base.CONTENT, path), item)
+
+            with open(item_path, "r") as file:
+                content = md_pars.convert(file.read())
+
+                content = content.replace(self.base.DATE, self.date)  # not efficient
+
+                what[item] = Item(
+                    meta=self.parse_metadata(md_pars.Meta), content=content
                 )
+                what[item].meta["path"] = item
 
-                post_data = posts[post].meta['data'].split(', ')
-                for pdata in post_data:
-                    cpdata = CONTENT + '/data/' + pdata
-                    if os.path.isfile(cpdata):
-                        shutil.copyfil(
-                            cpdata,
-                            OUTPUT + postpath + '/' + pdata
-                        )
-                    else:
-                        shutil.copytree(
-                            cpdata,
-                            OUTPUT + postpath + '/'
-                        )
+    def process_posts(self):
+        """
+        Process all published posts.
+        """
+        for post in self.posts:
+            if self.posts[post].meta["status"] == "published":
+                postpath = "/posts/" + post.split(".")[0]
+                self.posts[post].meta["url"] = postpath
 
-            os.makedirs(OUTPUT + postpath, exist_ok=True)
-            with open(OUTPUT + postpath + INDEXHTML, 'w') as file:
-                post_html = template['article'].render(
-                    base_vars,
-                    articles=posts[post],
-                    path=postpath,
-                    pages=pages,
-                    page=HOME,
-                    page_name='index'
-                )
-                file.write(post_html)
+                if self.posts[post].content.find(self.base.POST_URL) > 0:
+                    self.posts[post].content = self.posts[post].content.replace(
+                        self.base.POST_URL, self.base.SITEURL + postpath
+                    )
 
-            if posts[post].meta['image']:
-                shutil.copyfile(
-                    CONTENT + '/images/' + posts[post].meta['image'],
-                    OUTPUT + postpath + '/' + posts[post].meta['image'])
+                    post_data = self.posts[post].meta["data"].split(", ")
+                    for pdata in post_data:
+                        cpdata = self.base.CONTENT + "/data/" + pdata
+                        if os.path.isfile(cpdata):
+                            shutil.copyfil(
+                                cpdata, self.base.OUTPUT + postpath + "/" + pdata
+                            )
+                        else:
+                            shutil.copytree(cpdata, self.base.OUTPUT + postpath + "/")
+
+                os.makedirs(self.base.OUTPUT + postpath, exist_ok=True)
+                with open(
+                    self.base.OUTPUT + postpath + self.base.INDEXHTML, "w"
+                ) as file:
+                    post_html = self.template["article"].render(
+                        self.base,
+                        articles=self.posts[post],
+                        path=postpath,
+                        pages=self.pages,
+                        page=self.base.HOME,
+                        page_name="index",
+                    )
+                    file.write(post_html)
+
+                if self.posts[post].meta["image"]:
+                    shutil.copyfile(
+                        self.base.CONTENT + "/images/" + self.posts[post].meta["image"],
+                        self.base.OUTPUT
+                        + postpath
+                        + "/"
+                        + self.posts[post].meta["image"],
+                    )
+
+    def process_pages(self):
+        posts_metadata = [
+            post.meta
+            for _, post in self.posts.items()
+            if post.meta["status"] == "published"
+        ]
+        posts_metadata = sorted(posts_metadata, key=lambda x: x["date"], reverse=True)
+        pages_metadata = [self.pages[page].meta for page in self.pages]
+
+        html_pages = {}
+        self.base["pages"] = self.pages
+        for page, link in self.base.MENUITEMS:
+            pagetype = "page"
+            self.base["articles"] = posts_metadata
+
+            if page == self.base.HOME:
+                page = "index"
+                pagetype = page
+                BASE_VARS["articles"] = self.posts[posts_metadata[0]["path"]]
+                BASE_VARS["path"] = BASE_VARS["articles"].meta["url"].split(".")[0]
+            elif page == ARCHIVE:
+                pagetype = page
+
+            BASE_VARS["page"] = page + ".md"
+            BASE_VARS["page_name"] = page
+            html_pages[page] = template[pagetype].render(BASE_VARS)
+
+            file = (
+                self.base.OUTPUT + self.base.INDEXHTML
+                if not link
+                else self.base.OUTPUT + link + self.base.INDEXHTML
+            )
+            os.makedirs(os.path.dirname(file), exist_ok=True)
+            with open(file, "w") as f:
+                f.write(html_pages[page])
+
+    def build_menu(self):
+        """
+        Build the main menu based on pages.
+        """
+        names = [x[0] for x in BASE_VARS["MENUITEMS"]]
+        for page in self.pages:
+            name = page.split(".")[0]
+
+            if name not in names:
+                BASE_VARS["MENUITEMS"].append([name, "/" + name])
+
+    def build(self):
+        """
+        Build site.
+        """
+        self.parse(self.posts, "posts")
+        self.parse(self.pages, "pages")
+        self.build_menu()
+        self.process_posts()
+        self.process_pages()
 
 
 def main():
     """
     mysgen main function.
     """
-    posts = {}
-    parse(posts, 'posts')
-
-    base_vars['ALLTAGS'] = set(ALLTAGS)
-    base_vars['ALLCATEGORIES'] = set(ALLCATEGORIES)
-
-    pages = {}
-    parse(pages, 'pages')
-    about_date(pages)
-
-    build_menu(pages)
-
-    template = {}
-    define_env(template)
-
-    process_posts(posts)
-
-    posts_metadata = [post.meta for _, post in posts.items() if post.meta['status'] == 'published']
-    posts_metadata = sorted(posts_metadata, key=lambda x: x['date'], reverse=True)
-    pages_metadata = [pages[page].meta for page in pages]
-
-    html_pages = {}
-    base_vars['pages'] = pages
-    for page, link in base_vars['MENUITEMS']:
-        pagetype = 'page'
-        base_vars['articles'] = posts_metadata
-
-        if page == HOME:
-            page = 'index'
-            pagetype = page
-            base_vars['articles'] = posts[posts_metadata[0]['path']]
-            base_vars['path'] = base_vars['articles'].meta['url'].split('.')[0]
-        elif page == ARCHIVE:
-            pagetype = page
-
-        base_vars['page'] = page + '.md'
-        base_vars['page_name'] = page
-        html_pages[page] = template[pagetype].render(base_vars)
-
-        file = OUTPUT + INDEXHTML if not link else OUTPUT + link + INDEXHTML
-        os.makedirs(os.path.dirname(file), exist_ok=True)
-        with open(file, 'w') as f:
-            f.write(html_pages[page])
+    mysgen = MySGEN()
+    mysgen.build()
 
 
 def init():
     """
     Entry point to main.
     """
-    if __name__ == '__main__':
+    if __name__ == "__main__":
         main()
 
 
