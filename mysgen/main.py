@@ -10,8 +10,9 @@ import markdown
 from jinja2 import Environment, FileSystemLoader
 
 # set config path based on this directory
-PATH = "../../site/"
-CONFIG_PATH = os.path.join(PATH, "config.json")
+TEMPLATE_PATH = "../"
+CONTENT_PATH = "../../site"
+CONFIG_PATH = os.path.join(CONTENT_PATH, "config.json")
 
 
 @dataclass
@@ -50,8 +51,9 @@ class MySGEN:
         with open(CONFIG_PATH, "r") as file:
             self.base = json.loads(file.read())
 
-        for x in ["CONTENT", "OUTPUT", "TEMPLATES"]:
-            self.base[x] = os.path.join(PATH, self.base[x])
+        self.base["CONTENT"] = os.path.join(CONTENT_PATH, self.base["CONTENT"])
+        self.base["OUTPUT"] = os.path.join(CONTENT_PATH, self.base["OUTPUT"])
+        self.base["TEMPLATES"] = os.path.join(TEMPLATE_PATH, self.base["TEMPLATES"])
 
         self.base["TAGS"] = []
         self.base["CATEGORIES"] = []
