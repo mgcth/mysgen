@@ -33,6 +33,7 @@ class MySGEN:
         """
         Initialise MySGEN object.
         """
+
         self.template = {}
         self.posts = {}
         self.pages = {}
@@ -45,12 +46,12 @@ class MySGEN:
         """
         Set base configuration.
         """
+
         with open(CONFIG_PATH, "r") as file:
             self.base = json.loads(file.read())
 
-        self.base["CONTENT"] = os.path.join(PATH, self.base["CONTENT"])
-        self.base["OUTPUT"] = os.path.join(PATH, self.base["OUTPUT"])
-        self.base["TEMPLATES"] = os.path.join(PATH, self.base["TEMPLATES"])
+        for x in ["CONTENT", "OUTPUT", "TEMPLATES"]:
+            self.base[x] = os.path.join(PATH, self.base[x])
 
         self.base["TAGS"] = []
         self.base["CATEGORIES"] = []
@@ -59,6 +60,7 @@ class MySGEN:
         """
         Define Jinja enviroment.
         """
+
         env = Environment(
             loader=FileSystemLoader(self.base["TEMPLATES"]),
             trim_blocks=True,
@@ -76,6 +78,7 @@ class MySGEN:
         """
         Parse post and page metadata.
         """
+
         for key, value in meta.items():
             if value:
                 if key == "date":
@@ -94,8 +97,9 @@ class MySGEN:
 
     def parse(self, what, item, path):
         """
-        Parse both posts and pages
+        Parse both posts and pages.
         """
+
         item_path = os.path.join(os.path.join(self.base["CONTENT"], path), item)
 
         with open(item_path, "r") as file:
@@ -109,48 +113,54 @@ class MySGEN:
         """
         Parse posts.
         """
+
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
             self.parse(self.posts, item, path)
 
-    def parse_pages(self, path="pages", menu={"home": ""}):
+    def parse_pages(self, path="pages", menu={"home": "", "archive": "archive"}):
         """
         Parse pages.
         """
+
         self.base["MENUITEMS"] = menu
 
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
             self.parse(self.pages, item, path)
-            self.base["MENUITEMS"][item.split(".")[0]] = "/" + item.split(".")[0]
+            self.base["MENUITEMS"][item.split(".")[0]] = item.split(".")[0]
 
     def process_posts(self):
         """
         Process all published posts.
         """
+
         for post in self.posts:
             if self.posts[post].meta["status"] == "published":
-                postpath = "/posts/" + post.split(".")[0]
+                postpath = os.path.join("posts", post.split(".")[0])
                 self.posts[post].meta["url"] = postpath
 
                 if self.posts[post].content.find(self.base["POST_URL"]) > 0:
                     self.posts[post].content = self.posts[post].content.replace(
-                        self.base["POST_URL"], self.base["SITEURL"] + postpath
+                        self.base["POST_URL"],
+                        os.path.join(self.base["SITEURL"], postpath),
                     )
 
                     post_data = self.posts[post].meta["data"].split(", ")
                     for pdata in post_data:
-                        cpdata = self.base["CONTENT"] + "/data/" + pdata
+                        cpdata = os.path.join(self.base["CONTENT"], "data", pdata)
                         if os.path.isfile(cpdata):
                             shutil.copyfil(
-                                cpdata, self.base["OUTPUT"] + postpath + "/" + pdata
+                                cpdata,
+                                os.path.join(self.base["OUTPUT"], postpath, pdata),
                             )
                         else:
                             shutil.copytree(
-                                cpdata, self.base["OUTPUT"] + postpath + "/"
+                                cpdata, os.path.join(self.base["OUTPUT"], postpath)
                             )
 
-                os.makedirs(self.base["OUTPUT"] + postpath, exist_ok=True)
+                os.makedirs(os.path.join(self.base["OUTPUT"], postpath), exist_ok=True)
                 with open(
-                    self.base["OUTPUT"] + postpath + self.base["INDEXHTML"], "w"
+                    os.path.join(self.base["OUTPUT"], postpath, self.base["INDEXHTML"]),
+                    "w",
                 ) as file:
                     post_html = self.template["article"].render(
                         self.base,
@@ -165,16 +175,25 @@ class MySGEN:
                 if "image" in self.posts[post].meta:
                     if self.posts[post].meta["image"]:
                         shutil.copyfile(
-                            self.base["CONTENT"]
-                            + "/images/"
-                            + self.posts[post].meta["image"],
-                            self.base["OUTPUT"]
-                            + postpath
-                            + "/"
-                            + self.posts[post].meta["image"],
+                            os.path.join(
+                                self.base["CONTENT"],
+                                "images",
+                                self.posts[post].meta["image"],
+                            ),
+                            os.path.join(
+                                self.base["OUTPUT"],
+                                postpath,
+                                self.posts[post].meta["image"],
+                            ),
                         )
 
     def process_pages(self):
+        """
+        Process all pages.
+        """
+
+        self.pages["home.md"].content = self.pages["home.md"].content.replace("{{DATE_TIME}}", self.date)
+
         posts_metadata = [
             post.meta
             for _, post in self.posts.items()
@@ -202,33 +221,33 @@ class MySGEN:
             html_pages[page] = self.template[pagetype].render(self.base)
 
             file = (
-                self.base["OUTPUT"] + self.base["INDEXHTML"]
+                os.path.join(self.base["OUTPUT"], self.base["INDEXHTML"])
                 if not link
-                else self.base["OUTPUT"] + link + self.base["INDEXHTML"]
+                else os.path.join(self.base["OUTPUT"], link, self.base["INDEXHTML"])
             )
             os.makedirs(os.path.dirname(file), exist_ok=True)
-            with open(file, "w") as f:
-                f.write(html_pages[page])
+            with open(file, "w") as file:
+                file.write(html_pages[page])
 
     def build_menu(self):
         """
         Build the main menu based on pages.
         """
+
         names = list(
             self.base["MENUITEMS"].keys()
         )  # [x[0] for x in self.base["MENUITEMS"]]
-        print(names)
-        print(self.pages.keys())
         for page in self.pages:
             name = page.split(".")[0]
 
             if name not in names:
-                self.base["MENUITEMS"][name] = "/" + name
+                self.base["MENUITEMS"][name] = name
 
     def build(self):
         """
         Build site.
         """
+
         self.parse_posts()
         self.parse_pages()
         self.build_menu()
@@ -240,6 +259,7 @@ def main():
     """
     mysgen main function.
     """
+
     mysgen = MySGEN()
     mysgen.build()
 
@@ -248,6 +268,7 @@ def init():
     """
     Entry point to main.
     """
+
     if __name__ == "__main__":
         main()
 
