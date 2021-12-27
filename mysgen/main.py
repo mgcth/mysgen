@@ -128,6 +128,8 @@ class MySGEN:
             self.parse(self.pages, item, path)
             self.base["MENUITEMS"][item.split(".")[0]] = item.split(".")[0]
 
+        self.base["MENUITEMS"]["home"] = ""  # hack for now
+
     def process_posts(self):
         """
         Process all published posts.
@@ -192,7 +194,9 @@ class MySGEN:
         Process all pages.
         """
 
-        self.pages["home.md"].content = self.pages["home.md"].content.replace("{{DATE_TIME}}", self.date)
+        self.pages["home.md"].content = self.pages["home.md"].content.replace(
+            "{{DATE_TIME}}", self.date
+        )
 
         posts_metadata = [
             post.meta
