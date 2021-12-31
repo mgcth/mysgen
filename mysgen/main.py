@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import markdown
 from jinja2 import Environment, FileSystemLoader
 from PIL import Image
+from collections import OrderedDict
 
 
 # set config path based on this directory
@@ -51,7 +52,7 @@ class MySGEN:
         """
 
         with open(CONFIG_PATH, "r") as file:
-            self.base = json.loads(file.read())
+            self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
         self.base["CONTENT"] = os.path.join(CONTENT_PATH, self.base["CONTENT"])
         self.base["OUTPUT"] = os.path.join(CONTENT_PATH, self.base["OUTPUT"])
@@ -126,13 +127,12 @@ class MySGEN:
         Parse pages.
         """
 
-        self.base["MENUITEMS"] = {}
-
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
             self.parse(self.pages, item, path)
             self.base["MENUITEMS"][item.split(".")[0]] = item.split(".")[0]
 
         self.base["MENUITEMS"]["home"] = ""  # hack for now
+        self.base["JS_MENU"] = list(self.base["MENUITEMS"].keys())
 
     def process_posts(self):
         """
