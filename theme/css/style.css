@@ -914,7 +914,7 @@ p a:hover {
   }
 
   .main ol li.photo {
-    height: 75px;
+    height: 100px;
   }
 }
 
@@ -950,6 +950,10 @@ p a:hover {
 
   .main ol.photos {
     max-width: calc(100% - 36px);
+  }
+
+  .main ol li.photo {
+    height: 75px;
   }
 
   .main .hentry {
