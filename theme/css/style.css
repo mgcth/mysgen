@@ -629,11 +629,40 @@ p a:hover {
     flex-direction: column;
   }
 
+  .main ol.photos {
+    list-style-type: none;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    max-width: 860px;
+  }
+
+  .main ol.photos::after {
+    content: "";
+    flex-grow: 10;
+  }
+
+  .main ol.photos img {
+    max-height: 100%;
+    min-width: 100%;
+    object-fit: cover;
+    vertical-align: bottom;
+  }
+
   .main ol li {
     padding: 0;
     position: relative;
     margin: 1px 0 0 0;
     opacity: 1;
+  }
+
+  .main ol li.photo {
+    height: 150px;
+    flex-grow: 1;
+    margin: 0;
+    padding: 2px;
   }
 
   .main ol li:first-child {
@@ -876,6 +905,10 @@ p a:hover {
   }
 
   .main ol {
+    max-width: calc(100% - 80px);
+  }
+
+  .main ol.photos {
     max-width: calc(100% - 80px);
   }
 }

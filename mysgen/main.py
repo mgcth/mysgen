@@ -8,6 +8,8 @@ from datetime import datetime
 from dataclasses import dataclass
 import markdown
 from jinja2 import Environment, FileSystemLoader
+from PIL import Image
+
 
 # set config path based on this directory
 TEMPLATE_PATH = "../"
@@ -119,12 +121,12 @@ class MySGEN:
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
             self.parse(self.posts, item, path)
 
-    def parse_pages(self, path="pages", menu={"home": "", "archive": "archive"}):
+    def parse_pages(self, path="pages"):
         """
         Parse pages.
         """
 
-        self.base["MENUITEMS"] = menu
+        self.base["MENUITEMS"] = {}
 
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
             self.parse(self.pages, item, path)
@@ -178,18 +180,24 @@ class MySGEN:
 
                 if "image" in self.posts[post].meta:
                     if self.posts[post].meta["image"]:
-                        shutil.copyfile(
-                            os.path.join(
-                                self.base["CONTENT"],
-                                "images",
-                                self.posts[post].meta["image"],
-                            ),
-                            os.path.join(
-                                self.base["OUTPUT"],
-                                postpath,
-                                self.posts[post].meta["image"],
-                            ),
+                        from_file = os.path.join(
+                            self.base["CONTENT"],
+                            "images",
+                            self.posts[post].meta["image"],
                         )
+                        to_file = os.path.join(
+                            self.base["OUTPUT"],
+                            postpath,
+                            self.posts[post].meta["image"],
+                        )
+
+                        shutil.copyfile(
+                            from_file,
+                            to_file,
+                        )
+
+                    # resize images too
+                    self.resize_images(post, to_file)
 
     def process_pages(self):
         """
@@ -197,7 +205,7 @@ class MySGEN:
         """
 
         self.pages["home.md"].content = self.pages["home.md"].content.replace(
-            "{{DATE_TIME}}", self.date
+            "{{UPDATE_DATE}}", self.date
         )
 
         posts_metadata = [
@@ -248,6 +256,20 @@ class MySGEN:
 
             if name not in names:
                 self.base["MENUITEMS"][name] = name
+
+    def resize_images(self, post, to_file):
+        img = Image.open(to_file)
+        width, height = img.size
+        small_height = 150
+        small_width = small_height * width // height
+        img = img.resize((small_width, small_height), Image.ANTIALIAS)
+
+        path, file = os.path.split(to_file)
+        im_name_split = file.split(".")
+        small_name = im_name_split[0] + "_small." + im_name_split[1]
+
+        img.save(os.path.join(path, im_name_split[0] + "_small." + im_name_split[1]))
+        self.posts[post].meta["small_image"] = small_name
 
     def build(self):
         """

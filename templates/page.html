@@ -10,7 +10,7 @@
     </script>
     {% else %}
     <div id="ajax_content_{{ pages[title + ".md"].meta.title.lower() }}" class="ajax_content">
-      {% if title == "projects"%}
+      {% if title == "projects" %}
       <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
         {% for article in articles %}
         {% if article.category == "Projects" %}
@@ -18,11 +18,11 @@
         {% endif %}
         {% endfor %}
       </ol>
-      {% elif title == "personal"%}
-      <ol id="post-list" class="ordered-list" data-list-length="{{ articles|count }}">
+      {% elif title == "photos" %}
+      <ol id="post-list" class="photos ordered-list" data-list-length="{{ articles|count }}">
         {% for article in articles %}
-        {% if article.category == "Personal" %}
-        {% include 'base/archive_kernel.html' %}
+        {% if article.category == "Photos" and article.image %}
+        {% include 'base/photos_kernel.html' %}
         {% endif %}
         {% endfor %}
       </ol>
