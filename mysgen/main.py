@@ -260,7 +260,7 @@ class MySGEN:
     def resize_images(self, post, to_file):
         img = Image.open(to_file)
         width, height = img.size
-        small_height = 150
+        small_height = self.base["SMALL_IMAGE_HEIGHT"]
         small_width = small_height * width // height
         img = img.resize((small_width, small_height), Image.ANTIALIAS)
 

@@ -636,7 +636,7 @@ p a:hover {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
-    max-width: 860px;
+    max-width: 864px;
   }
 
   .main ol.photos::after {
@@ -909,7 +909,11 @@ p a:hover {
   }
 
   .main ol.photos {
-    max-width: calc(100% - 80px);
+    max-width: calc(100% - 76px);
+  }
+
+  .main ol li.photo {
+    height: 75px;
   }
 }
 
@@ -939,8 +943,16 @@ p a:hover {
     padding: 0 20px;
   }
 
+  .main ol {
+    max-width: calc(100% - 40px);
+  }
+
+  .main ol.photos {
+    max-width: calc(100% - 36px);
+  }
+
   .main .hentry {
-    padding: 20px 20px;
+    padding: 10px 0px;
     /*height: 150px;*/
   }
 
