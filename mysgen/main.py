@@ -225,8 +225,8 @@ class MySGEN:
             if page == self.base["HOME"]:
                 page = "index"
                 pagetype = page
-                self.base["articles"] = self.posts[posts_metadata[0]["path"]]
-                self.base["path"] = self.base["articles"].meta["url"].split(".")[0]
+                #self.base["articles"] = self.posts[posts_metadata[0]["path"]]
+                #self.base["path"] = self.base["articles"].meta["url"].split(".")[0]
             elif page == self.base["ARCHIVE"]:
                 pagetype = page
 
