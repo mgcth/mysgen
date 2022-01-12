@@ -179,7 +179,6 @@ class MySGEN:
             if post.meta["status"] == "published"
         ]
         posts_metadata = sorted(posts_metadata, key=lambda x: x["date"], reverse=True)
-        # pages_metadata = [self.pages[page].meta for page in self.pages]
 
         html_pages = {}
         self.base["pages"] = self.pages
@@ -190,8 +189,6 @@ class MySGEN:
             if page == self.base["HOME"]:
                 page = "index"
                 pagetype = page
-                # self.base["articles"] = self.posts[posts_metadata[0]["path"]]
-                # self.base["path"] = self.base["articles"].meta["url"].split(".")[0]
             elif page == self.base["ARCHIVE"]:
                 pagetype = page
 
@@ -213,9 +210,7 @@ class MySGEN:
         Build the main menu based on pages.
         """
 
-        names = list(
-            self.base["MENUITEMS"].keys()
-        )  # [x[0] for x in self.base["MENUITEMS"]]
+        names = list(self.base["MENUITEMS"].keys())
         for page in self.pages:
             name = page.split(".")[0]
 
