@@ -1,5 +1,5 @@
 # mysgen
-A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python, Markdown and Jinja2.
+A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
 The configuration file should contain the following:
 ```
