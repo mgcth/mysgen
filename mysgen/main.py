@@ -174,7 +174,7 @@ class MySGEN:
                         path=postpath,
                         pages=self.pages,
                         page=self.base["HOME"],
-                        page_name="index",
+                        page_name=self.base["INDEXHTML"].split(".")[0],
                     )
                     file.write(post_html)
 
