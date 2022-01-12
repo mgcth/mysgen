@@ -1,8 +1,8 @@
 {% extends "base/base.html" %}
 {% block content %}
 {% set pageName = "home" %}
-{% if MENUITEMS %}
-{% for title, link in MENUITEMS.items() %}
+{% if menuitems %}
+{% for title, link in menuitems.items() %}
 {% if title == "home" %}
     <div id="page_{{title}}" class="page" {% if title !=pageName %}style="display: none" {% endif %}>
       <div id="content_{{title}}" class="content {% if title == pageName %}ajaxHook{% endif %}">
@@ -17,7 +17,7 @@
     <div id="page_{{title}}" class="page" {% if title !=pageName %}style="display: none" {% endif %}>
       <div id="content_{{title}}" class="content {% if title == pageName %}ajaxHook{% endif %}">
         <script>
-          $("#content_{{title}}").load("{{ SITEURL }}/{{ link }} #ajax_content_{{title}}");
+          $("#content_{{title}}").load("{{ siteurl }}/{{ link }} #ajax_content_{{title}}");
         </script>
       </div>
     </div>

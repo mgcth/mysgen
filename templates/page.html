@@ -1,12 +1,12 @@
 {% extends "base/base.html" %}
 {% block content %}
-{% if MENUITEMS %}
-{% for title, link in MENUITEMS.items() %}
+{% if menuitems %}
+{% for title, link in menuitems.items() %}
     <div id="page_{{title}}" class="page" {% if title !=page_name %}style="display: none" {% endif %}>
       <div id="content_{{title}}" class="content {% if title == page_name %}ajaxHook{% endif %}">
         {% if not (title + ".md" in pages.keys()) or title == "archive" %}
         <script>
-          $("#content_{{title}}").load("{{ SITEURL }}/{{ link }} #ajax_content_{{title}}");
+          $("#content_{{title}}").load("{{ siteurl }}/{{ link }} #ajax_content_{{title}}");
         </script>
         {% else %}
         <div id="ajax_content_{{ pages[title + ".md"].meta.title.lower() }}" class="ajax_content">

@@ -3,7 +3,7 @@
 
 <head>
   {% block head %}
-  <title>{% block title %}{{ SITENAME }}{% endblock title %}</title>
+  <title>{% block title %}{{ sitename }}{% endblock title %}</title>
   <!--[if lte IE 10]>
     <div class="old-browsers">Page broken. Upgrade your browser or make a switch to something better.</div>
   <![endif]-->
@@ -14,13 +14,13 @@
   <meta name=viewport id="viewport" content="width=device-width, initial-scale=1">
   <!-- Define viewport -->
   <!-- Favicon -->
-  <link rel="shortcut icon" href="{{ SITEURL }}/theme/css/favicon.ico">
+  <link rel="shortcut icon" href="{{ siteurl }}/theme/css/favicon.ico">
   <!-- End Favicon -->
   <!-- Load CSS -->
-  <link rel="stylesheet" type="text/css" href="{{ SITEURL }}/theme/css/style.css" />
-  <link rel="stylesheet" type="text/css" href="{{ SITEURL }}/theme/highlight/styles/hybrid.css" />
+  <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/css/style.css" />
+  <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/highlight/styles/hybrid.css" />
   <noscript>
-    <link rel="stylesheet" type="text/css" href="{{ SITEURL }}/theme/css/noscript_style.css" />
+    <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/css/noscript_style.css" />
   </noscript>
   <!-- End Load CSS -->
   {% endblock head %}
@@ -53,12 +53,12 @@
       var whichPageActive = 0;
 
       // Define pages variable
-      var pages = {{ JS_MENU }};
+      var pages = {{ js_menu }};
     </script>
     <!-- End Load and Share data -->
 
     <!-- Load jQuery -->
-    <script type="text/javascript" src="{{ SITEURL }}/theme/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/jquery/2.1.4/jquery.min.js"></script>
     <!-- End Load jQuery -->
   </div>
 
@@ -75,12 +75,12 @@
           <div class="box5"></div>
         </div>
       </li>
-      {% if MENUITEMS %}
-      {% for title, link in MENUITEMS.items() %}
+      {% if menuitems %}
+      {% for title, link in menuitems.items() %}
       <li id="nav_{{ title }}" title="{{ title }}">
         <a class="nav_{{ title }} nav_link {% if ( title == "home" and page_name=="index" ) or ( title=="archives" and
           ( page_name=="archives" or page_name=="categories" or page_name=="tags" ) ) %}activeMenu{% endif %}"
-          title="{{ title }}" {% if ( title == "home" ) %} href="{{ SITEURL }}/{{link}}" {% else %} href="{{ SITEURL }}/{{link}}/" {% endif %}>
+          title="{{ title }}" {% if ( title == "home" ) %} href="{{ siteurl }}/{{link}}" {% else %} href="{{ siteurl }}/{{link}}/" {% endif %}>
           {{title}}
         </a>
       </li>
@@ -96,10 +96,10 @@
 
   <div class="dummyJS">
     <!-- Load Prefixfree -->
-    <script type="text/javascript" src="{{ SITEURL }}/theme/prefixfree/1.0.7/prefixfree.min.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/prefixfree/1.0.7/prefixfree.min.js"></script>
     <!-- End Load Prefixfree -->
     <!-- Load Highlight -->
-    <script src="{{ SITEURL }}/theme/highlight/highlight.pack.js"></script>
+    <script src="{{ siteurl }}/theme/highlight/highlight.pack.js"></script>
     <!-- End Load Highlight -->
     <!-- Load MathJax -->
     <script type="text/x-mathjax-config">
@@ -139,16 +139,16 @@
     <!-- End Load MathJax -->
     <!-- Load three.js -->
     <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
-    <script>window.processing || document.write('<script type="text/javascript" src="{{ SITEURL }}/theme/threejs/r68/three.min.js">\x3C/script>')</script> -->
+    <script>window.processing || document.write('<script type="text/javascript" src="{{ siteurl }}/theme/threejs/r68/three.min.js">\x3C/script>')</script> -->
     <!-- End Load three.js -->
     <!-- Load Site scripts -->
-    <script type="text/javascript" src="{{ SITEURL }}/theme/site_script.js"></script>
-    <script type="text/javascript" src="{{ SITEURL }}/theme/animation.js"></script>
-    <script type="text/javascript" src="{{ SITEURL }}/theme/navigation.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/site_script.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/animation.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/navigation.js"></script>
     <!-- End Load Site scripts -->
 
     <!-- Load Graphics -->
-    <!-- <script src="{{ SITEURL }}/theme/graphics/graphics_01.js"></script> -->
+    <!-- <script src="{{ siteurl }}/theme/graphics/graphics_01.js"></script> -->
     <!-- End Load Graphics -->
 
     <!-- Pageload continue and Page end -->
