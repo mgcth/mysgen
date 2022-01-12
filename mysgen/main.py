@@ -3,6 +3,7 @@ mysgen, a simple static site generator in Python.
 """
 import os
 import shutil
+from distutils.dir_util import copy_tree
 import json
 from datetime import datetime
 from dataclasses import dataclass
@@ -43,10 +44,10 @@ class MySGEN:
         self.pages = {}
         self.date = datetime.now().strftime("%Y-%m-%d")
 
-        self.set_base_config()
-        self.define_environment()
+        self._set_base_config()
+        self._define_environment()
 
-    def set_base_config(self):
+    def _set_base_config(self):
         """
         Set base configuration.
         """
@@ -61,9 +62,9 @@ class MySGEN:
         self.base["TAGS"] = []
         self.base["CATEGORIES"] = []
 
-    def define_environment(self):
+    def _define_environment(self):
         """
-        Define Jinja enviroment.
+        Define Jinja environment.
         """
 
         env = Environment(
@@ -79,7 +80,7 @@ class MySGEN:
 
         self.md_pars = markdown.Markdown(extensions=["meta", "fenced_code", "mdx_math"])
 
-    def parse_metadata(self, meta):
+    def _parse_metadata(self, meta):
         """
         Parse post and page metadata.
         """
@@ -100,7 +101,7 @@ class MySGEN:
 
         return meta
 
-    def parse(self, what, item, path):
+    def _parse(self, what, item, path):
         """
         Parse both posts and pages.
         """
@@ -110,31 +111,31 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.md_pars.convert(file.read())
             what[item] = Item(
-                meta=self.parse_metadata(self.md_pars.Meta), content=content
+                meta=self._parse_metadata(self.md_pars.Meta), content=content
             )
             what[item].meta["path"] = item
 
-    def parse_posts(self, path="posts"):
+    def _parse_posts(self, path="posts"):
         """
         Parse posts.
         """
 
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
-            self.parse(self.posts, item, path)
+            self._parse(self.posts, item, path)
 
-    def parse_pages(self, path="pages"):
+    def _parse_pages(self, path="pages"):
         """
         Parse pages.
         """
 
         for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
-            self.parse(self.pages, item, path)
+            self._parse(self.pages, item, path)
             self.base["MENUITEMS"][item.split(".")[0]] = item.split(".")[0]
 
         self.base["MENUITEMS"]["home"] = ""  # hack for now
         self.base["JS_MENU"] = list(self.base["MENUITEMS"].keys())
 
-    def process_posts(self):
+    def _process_posts(self):
         """
         Process all published posts.
         """
@@ -143,27 +144,10 @@ class MySGEN:
             if self.posts[post].meta["status"] == "published":
                 postpath = os.path.join("posts", post.split(".")[0])
                 self.posts[post].meta["url"] = postpath
-
-                if self.posts[post].content.find(self.base["POST_URL"]) > 0:
-                    self.posts[post].content = self.posts[post].content.replace(
-                        self.base["POST_URL"],
-                        os.path.join(self.base["SITEURL"], postpath),
-                    )
-
-                    post_data = self.posts[post].meta["data"].split(", ")
-                    for pdata in post_data:
-                        cpdata = os.path.join(self.base["CONTENT"], "data", pdata)
-                        if os.path.isfile(cpdata):
-                            shutil.copyfil(
-                                cpdata,
-                                os.path.join(self.base["OUTPUT"], postpath, pdata),
-                            )
-                        else:
-                            shutil.copytree(
-                                cpdata, os.path.join(self.base["OUTPUT"], postpath)
-                            )
-
                 os.makedirs(os.path.join(self.base["OUTPUT"], postpath), exist_ok=True)
+
+                self._render_markdown(post, postpath)
+
                 with open(
                     os.path.join(self.base["OUTPUT"], postpath, self.base["INDEXHTML"]),
                     "w",
@@ -172,34 +156,15 @@ class MySGEN:
                         self.base,
                         articles=self.posts[post],
                         path=postpath,
-                        pages=self.pages,
                         page=self.base["HOME"],
                         page_name=self.base["INDEXHTML"].split(".")[0],
                     )
                     file.write(post_html)
 
-                if "image" in self.posts[post].meta:
-                    if self.posts[post].meta["image"]:
-                        from_file = os.path.join(
-                            self.base["CONTENT"],
-                            "images",
-                            self.posts[post].meta["image"],
-                        )
-                        to_file = os.path.join(
-                            self.base["OUTPUT"],
-                            postpath,
-                            self.posts[post].meta["image"],
-                        )
+                self._copy_post_image(post, postpath)
+                self._copy_post_data(post, postpath)
 
-                        shutil.copyfile(
-                            from_file,
-                            to_file,
-                        )
-
-                    # resize images too
-                    self.resize_images(post, to_file)
-
-    def process_pages(self):
+    def _process_pages(self):
         """
         Process all pages.
         """
@@ -243,7 +208,7 @@ class MySGEN:
             with open(file, "w") as file:
                 file.write(html_pages[page])
 
-    def build_menu(self):
+    def _build_menu(self):
         """
         Build the main menu based on pages.
         """
@@ -257,7 +222,32 @@ class MySGEN:
             if name not in names:
                 self.base["MENUITEMS"][name] = name
 
-    def resize_images(self, post, to_file):
+    def _copy_post_data(self, post, postpath):
+        """
+        Copy post's data to output from contents.
+        """
+
+        try:
+            post_data = self.posts[post].meta["data"].split(", ")
+        except KeyError:
+            # don't print error for now
+            post_data = None
+
+        if post_data:
+            for pdata in post_data:
+                cpdata = os.path.join(self.base["CONTENT"], "data", pdata)
+                if os.path.isfile(cpdata):
+                    self._copy(
+                        cpdata, os.path.join(self.base["OUTPUT"], postpath, pdata)
+                    )
+                else:
+                    copy_tree(cpdata, os.path.join(self.base["OUTPUT"], postpath))
+
+    def _resize_image(self, post, to_file):
+        """
+        Resize post's image for photo gallery.
+        """
+
         img = Image.open(to_file)
         width, height = img.size
         small_height = self.base["SMALL_IMAGE_HEIGHT"]
@@ -271,16 +261,63 @@ class MySGEN:
         img.save(os.path.join(path, im_name_split[0] + "_small." + im_name_split[1]))
         self.posts[post].meta["small_image"] = small_name
 
+    def _copy_post_image(self, post, postpath):
+        """
+        Copy post's image to output from contents.
+        """
+
+        if "image" in self.posts[post].meta:
+            if self.posts[post].meta["image"]:
+                from_file = os.path.join(
+                    self.base["CONTENT"],
+                    "images",
+                    self.posts[post].meta["image"],
+                )
+                to_file = os.path.join(
+                    self.base["OUTPUT"],
+                    postpath,
+                    self.posts[post].meta["image"],
+                )
+
+                self._copy(
+                    from_file,
+                    to_file,
+                )
+
+                # resize images too
+                self._resize_image(post, to_file)
+
+    def _copy(self, from_file, to_file):
+        """
+        Copy files from to.
+        """
+
+        shutil.copyfile(
+            from_file,
+            to_file,
+        )
+
+    def _render_markdown(self, post, postpath):
+        """
+        Some markdown posts contain tags that need replacing.
+        """
+
+        if self.posts[post].content.find(self.base["POSTURL"]) > 0:
+            self.posts[post].content = self.posts[post].content.replace(
+                self.base["POSTURL"],
+                os.path.join(self.base["SITEURL"], postpath),
+            )
+
     def build(self):
         """
         Build site.
         """
 
-        self.parse_posts()
-        self.parse_pages()
-        self.build_menu()
-        self.process_posts()
-        self.process_pages()
+        self._parse_posts()
+        self._parse_pages()
+        self._build_menu()
+        self._process_posts()
+        self._process_pages()
 
 
 def main():
