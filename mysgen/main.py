@@ -15,8 +15,8 @@ from collections import OrderedDict
 
 # set config path based on this directory
 TEMPLATE_PATH = "../"
-CONTENT_PATH = "../../site"
-CONFIG_PATH = os.path.join(CONTENT_PATH, "config.json")
+content_PATH = "../../site"
+CONFIG_PATH = os.path.join(content_PATH, "config.json")
 
 
 @dataclass
@@ -55,12 +55,12 @@ class MySGEN:
         with open(CONFIG_PATH, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
-        self.base["CONTENT"] = os.path.join(CONTENT_PATH, self.base["CONTENT"])
-        self.base["OUTPUT"] = os.path.join(CONTENT_PATH, self.base["OUTPUT"])
-        self.base["TEMPLATES"] = os.path.join(TEMPLATE_PATH, self.base["TEMPLATES"])
+        self.base["content"] = os.path.join(content_PATH, self.base["content"])
+        self.base["output"] = os.path.join(content_PATH, self.base["output"])
+        self.base["templates"] = os.path.join(TEMPLATE_PATH, self.base["templates"])
 
-        self.base["TAGS"] = []
-        self.base["CATEGORIES"] = []
+        self.base["tags"] = []
+        self.base["categories"] = []
 
     def _define_environment(self):
         """
@@ -68,13 +68,13 @@ class MySGEN:
         """
 
         env = Environment(
-            loader=FileSystemLoader(self.base["TEMPLATES"]),
+            loader=FileSystemLoader(self.base["templates"]),
             trim_blocks=True,
             lstrip_blocks=True,
         )
 
-        for file in os.listdir(self.base["TEMPLATES"]):
-            if os.path.isfile(os.path.join(self.base["TEMPLATES"], file)):
+        for file in os.listdir(self.base["templates"]):
+            if os.path.isfile(os.path.join(self.base["templates"], file)):
                 page_type = file.split(".")[0]
                 self.template[page_type] = env.get_template(file)
 
@@ -94,10 +94,10 @@ class MySGEN:
 
                     if key == "tags":
                         meta[key] = meta[key].split(",")
-                        self.base["TAGS"].extend(meta[key])
+                        self.base["tags"].extend(meta[key])
 
                     if key == "category":
-                        self.base["CATEGORIES"].append(meta[key])
+                        self.base["categories"].append(meta[key])
 
         return meta
 
@@ -106,7 +106,7 @@ class MySGEN:
         Parse both posts and pages.
         """
 
-        item_path = os.path.join(os.path.join(self.base["CONTENT"], path), item)
+        item_path = os.path.join(os.path.join(self.base["content"], path), item)
 
         with open(item_path, "r") as file:
             content = self.md_pars.convert(file.read())
@@ -120,7 +120,7 @@ class MySGEN:
         Parse posts.
         """
 
-        for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
+        for item in os.listdir(os.path.join(self.base["content"], path)):
             self._parse(self.posts, item, path)
 
     def _parse_pages(self, path="pages"):
@@ -128,12 +128,12 @@ class MySGEN:
         Parse pages.
         """
 
-        for item in os.listdir(os.path.join(self.base["CONTENT"], path)):
+        for item in os.listdir(os.path.join(self.base["content"], path)):
             self._parse(self.pages, item, path)
-            self.base["MENUITEMS"][item.split(".")[0]] = item.split(".")[0]
+            self.base["menuitems"][item.split(".")[0]] = item.split(".")[0]
 
-        self.base["MENUITEMS"]["home"] = ""  # hack for now
-        self.base["JS_MENU"] = list(self.base["MENUITEMS"].keys())
+        self.base["menuitems"]["home"] = ""  # hack for now
+        self.base["js_menu"] = list(self.base["menuitems"].keys())
 
     def _process_posts(self):
         """
@@ -144,20 +144,20 @@ class MySGEN:
             if self.posts[post].meta["status"] == "published":
                 postpath = os.path.join("posts", post.split(".")[0])
                 self.posts[post].meta["url"] = postpath
-                os.makedirs(os.path.join(self.base["OUTPUT"], postpath), exist_ok=True)
+                os.makedirs(os.path.join(self.base["output"], postpath), exist_ok=True)
 
                 self._render_markdown(post, postpath)
 
                 with open(
-                    os.path.join(self.base["OUTPUT"], postpath, self.base["INDEXHTML"]),
+                    os.path.join(self.base["output"], postpath, self.base["indexhtml"]),
                     "w",
                 ) as file:
                     post_html = self.template["article"].render(
                         self.base,
                         articles=self.posts[post],
                         path=postpath,
-                        page=self.base["HOME"],
-                        page_name=self.base["INDEXHTML"].split(".")[0],
+                        page=self.base["home"],
+                        page_name=self.base["indexhtml"].split(".")[0],
                     )
                     file.write(post_html)
 
@@ -170,7 +170,7 @@ class MySGEN:
         """
 
         self.pages["home.md"].content = self.pages["home.md"].content.replace(
-            "{{UPDATE_DATE}}", self.date
+            "{{update_date}}", self.date
         )
 
         posts_metadata = [
@@ -182,14 +182,14 @@ class MySGEN:
 
         html_pages = {}
         self.base["pages"] = self.pages
-        for page, link in self.base["MENUITEMS"].items():
+        for page, link in self.base["menuitems"].items():
             pagetype = "page"
             self.base["articles"] = posts_metadata
 
-            if page == self.base["HOME"]:
+            if page == self.base["home"]:
                 page = "index"
                 pagetype = page
-            elif page == self.base["ARCHIVE"]:
+            elif page == self.base["archive"]:
                 pagetype = page
 
             self.base["page"] = page  # + ".md"
@@ -197,9 +197,9 @@ class MySGEN:
             html_pages[page] = self.template[pagetype].render(self.base)
 
             file = (
-                os.path.join(self.base["OUTPUT"], self.base["INDEXHTML"])
+                os.path.join(self.base["output"], self.base["indexhtml"])
                 if not link
-                else os.path.join(self.base["OUTPUT"], link, self.base["INDEXHTML"])
+                else os.path.join(self.base["output"], link, self.base["indexhtml"])
             )
             os.makedirs(os.path.dirname(file), exist_ok=True)
             with open(file, "w") as file:
@@ -210,12 +210,12 @@ class MySGEN:
         Build the main menu based on pages.
         """
 
-        names = list(self.base["MENUITEMS"].keys())
+        names = list(self.base["menuitems"].keys())
         for page in self.pages:
             name = page.split(".")[0]
 
             if name not in names:
-                self.base["MENUITEMS"][name] = name
+                self.base["menuitems"][name] = name
 
     def _copy_post_data(self, post, postpath):
         """
@@ -230,13 +230,13 @@ class MySGEN:
 
         if post_data:
             for pdata in post_data:
-                cpdata = os.path.join(self.base["CONTENT"], "data", pdata)
+                cpdata = os.path.join(self.base["content"], "data", pdata)
                 if os.path.isfile(cpdata):
                     self._copy(
-                        cpdata, os.path.join(self.base["OUTPUT"], postpath, pdata)
+                        cpdata, os.path.join(self.base["output"], postpath, pdata)
                     )
                 else:
-                    copy_tree(cpdata, os.path.join(self.base["OUTPUT"], postpath))
+                    copy_tree(cpdata, os.path.join(self.base["output"], postpath))
 
     def _resize_image(self, post, to_file):
         """
@@ -245,7 +245,7 @@ class MySGEN:
 
         img = Image.open(to_file)
         width, height = img.size
-        small_height = self.base["SMALL_IMAGE_HEIGHT"]
+        small_height = self.base["small_image_height"]
         small_width = small_height * width // height
         img = img.resize((small_width, small_height), Image.ANTIALIAS)
 
@@ -264,12 +264,12 @@ class MySGEN:
         if "image" in self.posts[post].meta:
             if self.posts[post].meta["image"]:
                 from_file = os.path.join(
-                    self.base["CONTENT"],
+                    self.base["content"],
                     "images",
                     self.posts[post].meta["image"],
                 )
                 to_file = os.path.join(
-                    self.base["OUTPUT"],
+                    self.base["output"],
                     postpath,
                     self.posts[post].meta["image"],
                 )
@@ -297,10 +297,10 @@ class MySGEN:
         Some markdown posts contain tags that need replacing.
         """
 
-        if self.posts[post].content.find(self.base["POSTURL"]) > 0:
+        if self.posts[post].content.find(self.base["posturl"]) > 0:
             self.posts[post].content = self.posts[post].content.replace(
-                self.base["POSTURL"],
-                os.path.join(self.base["SITEURL"], postpath),
+                self.base["posturl"],
+                os.path.join(self.base["siteurl"], postpath),
             )
 
     def build(self):
