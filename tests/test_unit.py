@@ -111,51 +111,57 @@ def test_unit_mysgen_set_base_config(fs):
     assert mysgen.base["tags"] == []
 
 
-# def test_unit_parse_metadata(fs):
-#     """
-#     Test parse function for metadata.
+def test_unit_parse_metadata():
+    """
+    Test parse function for metadata.
 
-#     This does not test the whole function, yet.
-#     """
+    This does not test the whole function, yet.
+    """
 
-#     metadata = {
-#         "author": ["A man has no name"],
-#         "category": ["Category"],
-#         "date": ["2021-01-24"],
-#         "image": ["20210124.jpg"],
-#         "status": ["published"],
-#         "tags": ["tag1,tag2"],
-#         "title": ["Test post"],
-#         "type": ["photo"],
-#     }
+    metadata = {
+        "author": ["A man has no name"],
+        "category": ["Category"],
+        "date": ["2021-01-24"],
+        "image": ["20210124.jpg"],
+        "status": ["published"],
+        "tags": ["tag1, tag2"],
+        "title": ["Test post"],
+        "type": ["photo"],
+    }
 
-#     meta = parse_metadata(metadata)
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen.base = {"tags": [], "categories": []}
+    meta = mysgen._parse_metadata(metadata)
 
-#     assert meta["title"] == "Test post"
-#     assert meta["date"] == datetime(2021, 1, 24, 0, 0)
-#     assert meta["author"] == "A man has no name"
-#     assert meta["category"] == "Category"
-#     assert meta["tags"] == ["tag1", "tag2"]
-#     assert meta["type"] == "photo"
-#     assert meta["image"] == "20210124.jpg"
-#     assert meta["status"] == "published"
+    assert meta["title"] == metadata["title"]
+    assert meta["date"] == metadata["date"]
+    assert meta["author"] == metadata["author"]
+    assert meta["category"] == metadata["category"]
+    assert meta["tags"] == metadata["tags"]
+    assert meta["type"] == metadata["type"]
+    assert meta["image"] == metadata["image"]
+    assert meta["status"] == metadata["status"]
+
+    assert mysgen.base["tags"] == metadata["tags"]
+    assert mysgen.base["categories"] == [metadata["category"]]
 
 
 # with open(this_dir + "/fixtures/test_post.md", "r") as file:
 #     test_post = file.read()
 
 
-# @patch("mysgen.main.CONTENT", "content")
 # @patch("builtins.open", mock_open(read_data=test_post))
-# def test_unit_parse_post(fs):
+# def test_unit_parse(fs):
 #     """
 #     Test parse function for posts.
 #     """
 
 #     fs.create_file("content/posts/test_post.md")
 
+#     mysgen = MySGEN(CONFIG_FILE)
 #     posts = {}
-#     parse(posts, "posts")
+#     mysgen.base = {"content": ""}
+#     mysgen._parse(posts, "", "posts")
 
 #     post = list(posts.keys())[0]
 #     assert os.path.exists("content/posts/test_post.md")
@@ -198,20 +204,19 @@ def test_unit_mysgen_set_base_config(fs):
 #     assert pages[page].content == "<p>Text.</p>"
 
 
-# @patch.dict(base_vars, {"MENUITEMS": [
-#     ["home", ""], ["archive", "/" + "archive"]
-# ]})
-# def test_unit_build_menu():
-#     """
-#     Test build menu function.
-#     """
+def test_unit_build_menu():
+    """
+    Test build menu function.
+    """
 
-#     pages = ["test_page1.md", "test_page2.md"]
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen.pages = ["test_page1", "test_page2"]
+    mysgen.base = {"menuitems": {"home": "", "archive": "archive"}}
+    mysgen._build_menu()
 
-#     build_menu(pages)
-
-#     menu = base_vars["MENUITEMS"]
-#     assert menu[0] == ["home", ""]
-#     assert menu[1] == ["archive", "/archive"]
-#     assert menu[2] == ["test_page1", "/test_page1"]
-#     assert menu[3] == ["test_page2", "/test_page2"]
+    assert mysgen.base["menuitems"] == {
+        "home": "",
+        "archive": "archive",
+        "test_page1": "test_page1",
+        "test_page2": "test_page2",
+    }
