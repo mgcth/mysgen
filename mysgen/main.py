@@ -316,22 +316,22 @@ class MySGEN:
         self._process_pages()
 
 
-def main():
+def main(config_file):
     """
     mysgen main function.
     """
 
-    mysgen = MySGEN(CONFIG_FILE)
+    mysgen = MySGEN(config_file)
     mysgen.build()
 
 
-def init():
+def init(config_file):
     """
     Entry point to main.
     """
 
     if __name__ == "__main__":
-        main()
+        main(config_file)
 
 
-init()
+init(CONFIG_FILE)
