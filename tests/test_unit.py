@@ -2,7 +2,7 @@
 Functions to test mysgen.
 """
 import os
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, Mock, mock_open
 from datetime import datetime
 import markdown
 from mysgen.main import init, main, MySGEN
@@ -51,13 +51,13 @@ def test_unit_mysgen_init():
     assert mysgen.date == date
 
 
-@patch.object(MySGEN, "_set_base_config")
-@patch.object(MySGEN, "_define_environment")
-@patch.object(MySGEN, "_parse_posts")
-@patch.object(MySGEN, "_parse_pages")
-@patch.object(MySGEN, "_build_menu")
-@patch.object(MySGEN, "_process_posts")
 @patch.object(MySGEN, "_process_pages")
+@patch.object(MySGEN, "_process_posts")
+@patch.object(MySGEN, "_build_menu")
+@patch.object(MySGEN, "_parse_pages")
+@patch.object(MySGEN, "_parse_posts")
+@patch.object(MySGEN, "_define_environment")
+@patch.object(MySGEN, "_set_base_config")
 def test_unit_mysgen_build(
     mock_set_base_config,
     mock_define_environment,
@@ -81,6 +81,36 @@ def test_unit_mysgen_build(
     mock_process_posts.assert_called_once()
     mock_process_pages.assert_called_once()
 
+
+# @patch.object(MySGEN, "config_file")
+# @patch.object(MySGEN, "_define_environment")
+# @patch.object(MySGEN, "_parse_posts")
+# @patch.object(MySGEN, "_parse_pages")
+# @patch.object(MySGEN, "_build_menu")
+# @patch.object(MySGEN, "_process_posts")
+# @patch.object(MySGEN, "_process_pages")
+# def test_unit_mysgen_set_base_config():
+#     mock_set_base_config,
+#     mock_define_environment,
+#     mock_parse_posts,
+#     mock_parse_pages,
+#     mock_build_menu,
+#     mock_process_posts,
+#     mock_process_pages,
+# ):
+#     """
+#     Test MySGEN build function.
+#     """
+
+#     mysgen = MySGEN(CONFIG_FILE)
+#     mysgen.build()
+#     mock_set_base_config.assert_called_once()
+#     mock_define_environment.assert_called_once()
+#     mock_parse_posts.assert_called_once()
+#     mock_parse_pages.assert_called_once()
+#     mock_build_menu.assert_called_once()
+#     mock_process_posts.assert_called_once()
+#     mock_process_pages.assert_called_once()
 
 # def test_unit_parse_metadata(fs):
 #     """
