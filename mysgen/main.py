@@ -75,9 +75,7 @@ class MySGEN:
                 page_type = file.split(".")[0]
                 self.template[page_type] = env.get_template(file)
 
-        self.md_parse = markdown.Markdown(
-            extensions=["meta", "fenced_code", "mdx_math"]
-        )
+        self.md_pars = markdown.Markdown(extensions=["meta", "fenced_code", "mdx_math"])
 
     def _parse_metadata(self, meta):
         """
@@ -108,9 +106,9 @@ class MySGEN:
         item_path = os.path.join(os.path.join(self.base["content"], path), item)
 
         with open(item_path, "r") as file:
-            content = self.md_parse.convert(file.read())
+            content = self.md_pars.convert(file.read())
             what[item] = Item(
-                meta=self._parse_metadata(self.md_parse.Meta), content=content
+                meta=self._parse_metadata(self.md_pars.Meta), content=content
             )
             what[item].meta["path"] = item
 
