@@ -4,6 +4,8 @@ Functions to test mysgen.
 import os
 from unittest.mock import patch, Mock, mock_open
 from datetime import datetime
+from collections import OrderedDict
+import json
 import markdown
 from mysgen.main import init, main, MySGEN
 
@@ -38,7 +40,7 @@ def test_unit_main(mock_mysgen):
 
 def test_unit_mysgen_init():
     """
-    Test MySGEN init function.
+    Test MySGEN init method.
     """
 
     date = datetime.now().strftime("%Y-%m-%d")
@@ -82,35 +84,32 @@ def test_unit_mysgen_build(
     mock_process_pages.assert_called_once()
 
 
-# @patch.object(MySGEN, "config_file")
-# @patch.object(MySGEN, "_define_environment")
-# @patch.object(MySGEN, "_parse_posts")
-# @patch.object(MySGEN, "_parse_pages")
-# @patch.object(MySGEN, "_build_menu")
-# @patch.object(MySGEN, "_process_posts")
-# @patch.object(MySGEN, "_process_pages")
-# def test_unit_mysgen_set_base_config():
-#     mock_set_base_config,
-#     mock_define_environment,
-#     mock_parse_posts,
-#     mock_parse_pages,
-#     mock_build_menu,
-#     mock_process_posts,
-#     mock_process_pages,
-# ):
-#     """
-#     Test MySGEN build function.
-#     """
+with open(this_dir + "/fixtures/test_config.json", "r") as file:
+    test_config = file.read()
 
-#     mysgen = MySGEN(CONFIG_FILE)
-#     mysgen.build()
-#     mock_set_base_config.assert_called_once()
-#     mock_define_environment.assert_called_once()
-#     mock_parse_posts.assert_called_once()
-#     mock_parse_pages.assert_called_once()
-#     mock_build_menu.assert_called_once()
-#     mock_process_posts.assert_called_once()
-#     mock_process_pages.assert_called_once()
+
+@patch("builtins.open", mock_open(read_data=test_config))
+def test_unit_mysgen_set_base_config(fs):
+    """
+    Test MySGEN set_base_config method.
+    """
+
+    with open(test_config, "r") as file:
+        base = json.loads(file.read(), object_pairs_hook=OrderedDict)
+
+    fs.create_file("../../site/test_config.json")
+
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen._set_base_config()
+
+    assert mysgen.base["content"] == os.path.join(base["site_path"], base["content"])
+    assert mysgen.base["output"] == os.path.join(base["site_path"], base["output"])
+    assert mysgen.base["templates"] == os.path.join(
+        base["template_path"], base["templates"]
+    )
+    assert mysgen.base["tags"] == []
+    assert mysgen.base["tags"] == []
+
 
 # def test_unit_parse_metadata(fs):
 #     """
