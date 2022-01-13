@@ -53,11 +53,9 @@ class MySGEN:
 
         site_path = self.base["site_path"]
         template_path = self.base["template_path"]
-
         self.base["content"] = os.path.join(site_path, self.base["content"])
         self.base["output"] = os.path.join(site_path, self.base["output"])
         self.base["templates"] = os.path.join(template_path, self.base["templates"])
-
         self.base["tags"] = []
         self.base["categories"] = []
 
