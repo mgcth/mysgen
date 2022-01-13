@@ -1,8 +1,3 @@
-# mysgen
-A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
-
-The configuration file should contain the following:
-```
 {
     "author": "Name",
     "sitename": "Site name",
@@ -24,4 +19,3 @@ The configuration file should contain the following:
     "posturl": "{{POSTURL}}",
     "small_image_height": 300
 }
-```

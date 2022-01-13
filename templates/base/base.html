@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="{{ DEFAULT_LANG }}">
+
+<head>
+  {% block head %}
+  <title>{% block title %}{{ sitename }}{% endblock title %}</title>
+  <!--[if lte IE 10]>
+    <div class="old-browsers">Page broken. Upgrade your browser or make a switch to something better.</div>
+  <![endif]-->
+  <!-- Define charset -->
+  <meta charset="utf-8" />
+  <!-- End Define charset -->
+  <!-- Define viewport -->
+  <meta name=viewport id="viewport" content="width=device-width, initial-scale=1">
+  <!-- Define viewport -->
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="{{ siteurl }}/theme/css/favicon.ico">
+  <!-- End Favicon -->
+  <!-- Load CSS -->
+  <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/css/style.css" />
+  <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/highlight/styles/hybrid.css" />
+  <noscript>
+    <link rel="stylesheet" type="text/css" href="{{ siteurl }}/theme/css/noscript_style.css" />
+  </noscript>
+  <!-- End Load CSS -->
+  {% endblock head %}
+</head>
+
+<body>
+  <div class="dummyJS">
+    <!-- Loading screen if JavaScript is enabled -->
+    <noscript>All content might not be visible. Activate JavaScript.</noscript>
+    <div id="loading">
+      <div id="icon" class="logo">
+        <div class="box1"></div>
+        <div class="box2"></div>
+        <div class="box3"></div>
+        <div class="box4"></div>
+        <div class="box5"></div>
+      </div>
+    </div>
+    <!-- End Loading screen if JavaScript is enabled -->
+
+    <!-- Load and Share data -->
+    <script type="text/javascript">
+      // Pageload (avoid jQuery so it can be load after)
+      var loadingDOM = document.getElementById("loading");
+      loadingDOM.style.display = "flex";
+      // End Pageload
+
+      // Share data
+      // Define which page and set dummy
+      var whichPageActive = 0;
+
+      // Define pages variable
+      var pages = {{ js_menu }};
+    </script>
+    <!-- End Load and Share data -->
+
+    <!-- Load jQuery -->
+    <script type="text/javascript" src="{{ siteurl }}/theme/jquery/2.1.4/jquery.min.js"></script>
+    <!-- End Load jQuery -->
+  </div>
+
+  <nav id="nav" class="nav">
+    <ul>
+      <li id="menu-icon">
+        <div class="logo">
+          <div class="box1"></div>
+          <div class="boxes_123">
+            <div class="box2"></div>
+            <div class="box3"></div>
+            <div class="box4"></div>
+          </div>
+          <div class="box5"></div>
+        </div>
+      </li>
+      {% if menuitems %}
+      {% for title, link in menuitems.items() %}
+      <li id="nav_{{ title }}" title="{{ title }}">
+        <a class="nav_{{ title }} nav_link {% if ( title == "home" and page_name=="index" ) or ( title=="archives" and
+          ( page_name=="archives" or page_name=="categories" or page_name=="tags" ) ) %}activeMenu{% endif %}"
+          title="{{ title }}" {% if ( title == "home" ) %} href="{{ siteurl }}/{{link}}" {% else %} href="{{ siteurl }}/{{link}}/" {% endif %}>
+          {{title}}
+        </a>
+      </li>
+      {% endfor %}
+      {% endif %}
+    </ul>
+  </nav>
+
+  <main id="main" class="main">
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <div class="dummyJS">
+    <!-- Load Prefixfree -->
+    <script type="text/javascript" src="{{ siteurl }}/theme/prefixfree/1.0.7/prefixfree.min.js"></script>
+    <!-- End Load Prefixfree -->
+    <!-- Load Highlight -->
+    <script src="{{ siteurl }}/theme/highlight/highlight.pack.js"></script>
+    <!-- End Load Highlight -->
+    <!-- Load MathJax -->
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      extensions: ["tex2jax.js"],
+        jax: ["input/TeX", "output/HTML-CSS"],
+        tex2jax: {
+          inlineMath: [['$','$'],['\\(','\\)']],
+          displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+          processEscapes: true,
+          skipTags: ["script","noscript","style","textarea"],
+        },
+      "HTML-CSS": {
+        scale: 90,
+        availableFonts: ["TeX"]},
+        MMLorHTML: {prefer: "HTML"},
+      TeX: {
+        extensions: ["color.js","AMSmath.js","AMSsymbols.js","noErrors.js","noUndefined.js"]
+      }
+    });
+    MathJax.Hub.Register.StartupHook("HTML-CSS Jax Ready",function () {
+      var VARIANT = MathJax.OutputJax["HTML-CSS"].FONTDATA.VARIANT;
+      VARIANT["normal"].fonts.unshift("MathJax_SansSerif");
+      VARIANT["bold"].fonts.unshift("MathJax_SansSerif-bold");
+      VARIANT["italic"].fonts.unshift("MathJax_SansSerif-italic");
+      VARIANT["-tex-mathit"].fonts.unshift("MathJax_SansSerif-italic");
+    });
+    MathJax.Hub.Register.StartupHook("SVG Jax Ready",function () {
+      var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;
+      VARIANT["normal"].fonts.unshift("MathJax_SansSerif");
+      VARIANT["bold"].fonts.unshift("MathJax_SansSerif-bold");
+      VARIANT["italic"].fonts.unshift("MathJax_SansSerif-italic");
+      VARIANT["-tex-mathit"].fonts.unshift("MathJax_SansSerif-italic");
+    });
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js?config=TeX-AMS_HTML"></script>
+    <!-- End Load MathJax -->
+    <!-- Load three.js -->
+    <!-- <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r68/three.min.js"></script>
+    <script>window.processing || document.write('<script type="text/javascript" src="{{ siteurl }}/theme/threejs/r68/three.min.js">\x3C/script>')</script> -->
+    <!-- End Load three.js -->
+    <!-- Load Site scripts -->
+    <script type="text/javascript" src="{{ siteurl }}/theme/site_script.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/animation.js"></script>
+    <script type="text/javascript" src="{{ siteurl }}/theme/navigation.js"></script>
+    <!-- End Load Site scripts -->
+
+    <!-- Load Graphics -->
+    <!-- <script src="{{ siteurl }}/theme/graphics/graphics_01.js"></script> -->
+    <!-- End Load Graphics -->
+
+    <!-- Pageload continue and Page end -->
+    <script type="text/javascript">
+      // Page end
+      $(document).ready(function () {
+        // Initial style of the frames
+        animatePage(whichPageActive);
+
+        hljs.configure({
+          tabReplace: '    ', // 4 spaces
+        });
+        hljs.initHighlighting();
+        //MathJax.Hub.Typeset();
+      });
+      // End Page end
+
+      // Pageload continue
+      // When loaded, fade out loading div
+      $(window).load(function () {
+        $('#loading').css({
+          "opacity": 0,
+          "transform": "translateZ(0)",
+          "transition": "all " + 500 + "ms"
+        });
+
+        $("#loading").delay(500).queue(function (next) {
+          $(this).css({ "display": "none" });
+          next();
+        });
+      });
+    // End Pageload continue
+    </script>
+    <!-- End Pageload continue and Page end -->
+  </div>
+</body>
+
+</html>

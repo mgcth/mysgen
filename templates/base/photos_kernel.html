@@ -1,0 +1,18 @@
+            <li class="photo list-style list-style-tiles" data-list="{{ article.date.strftime('%Y-%m-%d') }}" data-month="{{ article.date.strftime('%m') }}">
+              <a id="{{ article.slug }}" href="{{siteurl}}/{{ article.url }}" rel="bookmark" title="Permalink to {{ article.title|striptags }}">
+                <!-- <article> -->
+                  <img class="post-image-tile" src="{{siteurl}}/{{article.url}}/{{article.small_image}}"/>
+                  <!-- <header>
+                    <h5 class="entry-date entry-title">
+                      {{ article.date.strftime('%Y-%m-%d') }} /
+                    </h5>
+                    <h5 class="entry-title">
+                      {{ article.category }} /
+                    </h5>
+                    <h5 class="entry-title">
+                      {{ article.title }}
+                    </h5>
+                  </header> -->
+                <!-- </article> -->
+              </a>
+            </li>

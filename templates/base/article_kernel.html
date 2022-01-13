@@ -1,0 +1,80 @@
+          {% if articles.meta.image %}
+          <article class="article-image">
+            <figure>
+              <img class="post-image" src="{{siteurl}}/{{path}}/{{articles.meta.image}}"/>
+            </figure>
+            <div class="article-image-wrapper">
+              <div class="article-image-inside">
+                <header>
+                  <h1 class="entry-title">{{ articles.meta.title }}</h1>
+                  <span class="published" title="{{ articles.meta.date.isoformat() }}">
+                    / {{ articles.meta.date.strftime("%Y-%m-%d") }} /
+                  </span>
+                  <span class="entry-title">
+                    {{ articles.meta.category }}
+                  </span>
+                </header>
+                <!-- {% if articles.modified %}
+                <span class="modified" title="{{ articles.modified.isoformat() }}">
+                  Updated {{ articles.modified.strftime("%Y-%m-%d") }} |
+                </span>
+                {% endif %}
+                <span class="posted_in">
+                  {{ articles.meta.category }} |
+                  {% for tag_ in range(0, articles.meta.tags|length) %}
+                  {% if tag_ == articles.meta.tags|length - 1 %}
+                    {{ articles.meta.tags[tag_] }}
+                  {% elif tag_ == (articles.meta.tags|length - 2) %}
+                    {{ articles.meta.tags[tag_] }} |
+                  {% else %}
+                    {{ articles.meta.tags[tag_] }} |
+                  {% endif %}
+                  {% endfor %}
+                </span> -->
+
+                <!-- <div class="article-content hyphenate">
+                  <div class="article_body">
+                    {{ articles.content }}
+                  </div>
+                </div> -->
+              </div>
+            </div>
+            <footer class="post-info"></footer>
+          </article>
+          {% else %}
+          <article class="article">
+            <header>
+              <h1 class="entry-title">{{ articles.meta.title }}</h1>
+              <span class="published" title="{{ articles.meta.date.isoformat() }}">
+                / {{ articles.meta.date.strftime("%Y-%m-%d") }} /
+              </span>
+              <span class="entry-title">
+                {{ articles.meta.category }}
+              </span>
+              <!-- {% if articles.modified %}
+              <span class="modified" title="{{ articles.modified.isoformat() }}">
+                Updated {{ articles.modified.strftime("%Y-%m-%d") }} |
+              </span>
+              {% endif %}
+              <span class="posted_in">
+                {{ articles.meta.category }} |
+                {% for tag_ in range(0, articles.meta.tags|length) %}
+                {% if tag_ == articles.meta.tags|length - 1 %}
+                  {{ articles.meta.tags[tag_] }}
+                {% elif tag_ == (articles.meta.tags|length - 2) %}
+                  {{ articles.meta.tags[tag_] }} |
+                {% else %}
+                  {{ articles.meta.tags[tag_] }} |
+                {% endif %}
+                {% endfor %}
+              </span> -->
+
+            </header>
+            <div class="article-content hyphenate">
+              <div class="article_body">
+                {{ articles.content }}
+              </div>
+            </div>
+            <footer class="post-info"></footer>
+          </article>
+          {% endif %}
