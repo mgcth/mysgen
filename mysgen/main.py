@@ -13,10 +13,8 @@ from PIL import Image
 from collections import OrderedDict
 
 
-# set config path based on this directory
-TEMPLATE_PATH = "../"
-content_PATH = "../../site"
-CONFIG_PATH = os.path.join(content_PATH, "config.json")
+# set config file path
+CONFIG_FILE = "../../site/config.json"
 
 
 @dataclass
@@ -34,30 +32,31 @@ class MySGEN:
     MySGEN class.
     """
 
-    def __init__(self):
+    def __init__(self, config_file):
         """
         Initialise MySGEN object.
         """
 
+        self.config_file = config_file
         self.template = {}
         self.posts = {}
         self.pages = {}
         self.date = datetime.now().strftime("%Y-%m-%d")
-
-        self._set_base_config()
-        self._define_environment()
 
     def _set_base_config(self):
         """
         Set base configuration.
         """
 
-        with open(CONFIG_PATH, "r") as file:
+        with open(self.config_file, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
-        self.base["content"] = os.path.join(content_PATH, self.base["content"])
-        self.base["output"] = os.path.join(content_PATH, self.base["output"])
-        self.base["templates"] = os.path.join(TEMPLATE_PATH, self.base["templates"])
+        site_path = self.base["site_path"]
+        template_path = self.base["template_path"]
+
+        self.base["content"] = os.path.join(site_path, self.base["content"])
+        self.base["output"] = os.path.join(site_path, self.base["output"])
+        self.base["templates"] = os.path.join(template_path, self.base["templates"])
 
         self.base["tags"] = []
         self.base["categories"] = []
@@ -308,6 +307,8 @@ class MySGEN:
         Build site.
         """
 
+        self._set_base_config()
+        self._define_environment()
         self._parse_posts()
         self._parse_pages()
         self._build_menu()
@@ -320,7 +321,7 @@ def main():
     mysgen main function.
     """
 
-    mysgen = MySGEN()
+    mysgen = MySGEN(CONFIG_FILE)
     mysgen.build()
 
 
