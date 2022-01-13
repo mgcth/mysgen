@@ -42,7 +42,6 @@ class MySGEN:
         self.posts = {}
         self.pages = {}
         self.date = datetime.now().strftime("%Y-%m-%d")
-        self.md_parse = None
 
     def _set_base_config(self):
         """
@@ -76,7 +75,9 @@ class MySGEN:
                 page_type = file.split(".")[0]
                 self.template[page_type] = env.get_template(file)
 
-        self.md_parse = markdown.Markdown(extensions=["meta", "fenced_code", "mdx_math"])
+        self.md_parse = markdown.Markdown(
+            extensions=["meta", "fenced_code", "mdx_math"]
+        )
 
     def _parse_metadata(self, meta):
         """
