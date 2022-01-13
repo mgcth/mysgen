@@ -221,6 +221,27 @@ def test_unit_parse_posts(mock_parse_posts, mock_listdir):
     assert mock_parse_posts.call_count == 2
 
 
+@patch.object(os, "listdir")
+@patch.object(MySGEN, "_parse")
+def test_unit_parse_pages(mock_parse_pages, mock_listdir):
+    """
+    Test the parse pages method.
+    """
+
+    expected = ["f1.md", "f2.md"]
+    mock_listdir.return_value = expected
+
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen.base = {"content": "", "menuitems": {"home": "", "archive": "archive"}}
+    mysgen._parse_pages()
+
+    assert mock_parse_pages.call_count == 2
+    assert mysgen.base["menuitems"]["home"] == ""
+    assert mysgen.base["menuitems"]["f1"] == "f1"
+    assert mysgen.base["menuitems"]["f2"] == "f2"
+    assert mysgen.base["js_menu"] == list(mysgen.base["menuitems"].keys())
+
+
 def test_unit_build_menu():
     """
     Test build menu function.
