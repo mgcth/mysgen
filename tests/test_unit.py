@@ -204,6 +204,23 @@ def test_unit_parse_metadata():
 #     assert pages[page].content == "<p>Text.</p>"
 
 
+@patch.object(os, "listdir")
+@patch.object(MySGEN, "_parse")
+def test_unit_parse_posts(mock_parse_posts, mock_listdir):
+    """
+    Test the parse posts method.
+    """
+
+    expected = ["f1", "f2"]
+    mock_listdir.return_value = expected
+
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen.base = {"content": ""}
+    mysgen._parse_posts()
+
+    assert mock_parse_posts.call_count == 2
+
+
 def test_unit_build_menu():
     """
     Test build menu function.
