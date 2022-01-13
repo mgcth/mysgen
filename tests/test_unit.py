@@ -151,30 +151,22 @@ def test_unit_parse_metadata():
 
 
 # @patch("builtins.open", mock_open(read_data=test_post))
-# def test_unit_parse(fs):
+# @patch.object(MySGEN, "_parse_metadata")
+# def test_unit_parse_1(mock_parse_metadata, fs):
 #     """
 #     Test parse function for posts.
 #     """
 
 #     fs.create_file("content/posts/test_post.md")
 
+#     mock_parse_metadata.return_value = {"meta": "meta"}
+#     mock_md_parse.return_value = "content"
+
 #     mysgen = MySGEN(CONFIG_FILE)
 #     posts = {}
 #     mysgen.base = {"content": ""}
-#     mysgen._parse(posts, "", "posts")
-
-#     post = list(posts.keys())[0]
-#     assert os.path.exists("content/posts/test_post.md")
-#     assert post == "test_post.md"
-#     assert posts[post].meta["title"] == "Test post"
-#     assert posts[post].meta["date"] == datetime(2021, 1, 24, 0, 0)
-#     assert posts[post].meta["author"] == "A man has no name"
-#     assert posts[post].meta["category"] == "Category"
-#     assert posts[post].meta["tags"] == ["tag1", "tag2"]
-#     assert posts[post].meta["type"] == "photo"
-#     assert posts[post].meta["image"] == "20210124.jpg"
-#     assert posts[post].meta["status"] == "published"
-#     assert posts[post].content == "<p>Text.</p>"
+#     # mysgen.md_parse.convert = "content"
+#     mysgen._parse(posts, "item", "posts")
 
 
 # with open(this_dir + "/fixtures/test_page.md", "r") as file:
