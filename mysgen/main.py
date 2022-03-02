@@ -2,15 +2,15 @@
 mysgen, a simple static site generator in Python.
 """
 import os
-import shutil
-from distutils.dir_util import copy_tree
 import json
+import shutil
+import markdown
+from PIL import Image
 from datetime import datetime
 from dataclasses import dataclass
-import markdown
-from jinja2 import Environment, FileSystemLoader
-from PIL import Image
 from collections import OrderedDict
+from distutils.dir_util import copy_tree
+from jinja2 import Environment, FileSystemLoader
 
 
 # set config file path
