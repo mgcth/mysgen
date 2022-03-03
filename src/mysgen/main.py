@@ -14,7 +14,7 @@ from jinja2 import Environment, FileSystemLoader
 
 
 # set config file path
-CONFIG_FILE = "/config.json"
+CONFIG_FILE = "config.json"
 
 
 @dataclass
