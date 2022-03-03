@@ -2,7 +2,7 @@
 requires = [
     "setuptools>=42",
     "wheel",
-    "Markdown=="3.3.3,
+    "Markdown==3.3.3",
     "Pillow==9.0.0",
     "jinja2==2.11.2"
 ]
