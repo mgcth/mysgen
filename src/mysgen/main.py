@@ -299,7 +299,7 @@ class MySGEN:
         if self.posts[post].content.find(self.base["posturl"]) > 0:
             self.posts[post].content = self.posts[post].content.replace(
                 self.base["posturl"],
-                os.path.join(self.base["siteurl"], postpath),
+                os.path.join("/", postpath),
             )
 
     def build(self):
