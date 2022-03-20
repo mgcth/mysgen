@@ -5,6 +5,6 @@ setup(
     install_requires=[
         "Markdown==3.3.3",
         "Pillow==9.0.1",
-        "jinja2==2.11.2"
+        "jinja2==2.11.3"
     ],
 )
