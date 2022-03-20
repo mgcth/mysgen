@@ -119,15 +119,27 @@ class MySGEN:
         Parse posts.
         """
 
-        for item in os.listdir(os.path.join(self.base["content"], path)):
-            self._parse(self.posts, item, path)
+        try:
+            posts = os.listdir(os.path.join(self.base["content"], path))
+        except FileNotFoundError as e:
+            print("No posts. Skipping.")
+            return None
+
+        for item in posts:
+                self._parse(self.posts, item, path)
 
     def _parse_pages(self, path="pages"):
         """
         Parse pages.
         """
 
-        for item in os.listdir(os.path.join(self.base["content"], path)):
+        try:
+            pages = os.listdir(os.path.join(self.base["content"], path))
+        except FileNotFoundError as e:
+            print("No pages. Skipping.")
+            return None
+
+        for item in pages:
             self._parse(self.pages, item, path)
             self.base["menuitems"][item.split(".")[0]] = item.split(".")[0]
 
