@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <title>Site name</title>
+    <meta charset="utf-8" />
+    <meta name=viewport id="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+    <main id="main" class="main">
+        <div id="page_home" class="page" >
+            <div id="content_home" class="content ajaxHook">
+                <div id="ajax_content_home" class="ajax_content">
+                    <div class="entry-content-page hyphenate">
+                        <p>Text.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="page_archive" class="page" style="display: none" >
+            <div id="content_archive" class="content ">
+                <script>
+                    $("#content_archive").load("/archive #ajax_content_archive");
+                </script>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>
