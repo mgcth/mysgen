@@ -22,7 +22,6 @@ def test_unit_init(mock_main):
     """
     Test init function.
     """
-
     init(CONFIG_FILE)
     mock_main.assert_called_once()
 
@@ -32,7 +31,6 @@ def test_unit_main(mock_mysgen):
     """
     Test main function.
     """
-
     main(CONFIG_FILE)
     mock_mysgen.assert_called_once()
     mock_mysgen.return_value.build.assert_called_once()
@@ -42,7 +40,6 @@ def test_unit_mysgen_init():
     """
     Test MySGEN init method.
     """
-
     date = datetime.now().strftime("%Y-%m-%d")
     mysgen = MySGEN(CONFIG_FILE)
 
@@ -72,7 +69,6 @@ def test_unit_mysgen_build(
     """
     Test MySGEN build function.
     """
-
     mysgen = MySGEN(CONFIG_FILE)
     mysgen.build()
     mock_set_base_config.assert_called_once()
@@ -93,7 +89,6 @@ def test_unit_mysgen_set_base_config(fs):
     """
     Test MySGEN set_base_config method.
     """
-
     with open(test_config, "r") as file:
         base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
@@ -117,7 +112,6 @@ def test_unit_parse_metadata():
 
     This does not test the whole function, yet.
     """
-
     metadata = {
         "author": ["A man has no name"],
         "category": ["Category"],
@@ -146,63 +140,12 @@ def test_unit_parse_metadata():
     assert mysgen.base["categories"] == [metadata["category"]]
 
 
-# with open(this_dir + "/fixtures/test_post.md", "r") as file:
-#     test_post = file.read()
-
-
-# @patch("builtins.open", mock_open(read_data=test_post))
-# @patch.object(MySGEN, "_parse_metadata")
-# def test_unit_parse_1(mock_parse_metadata, fs):
-#     """
-#     Test parse function for posts.
-#     """
-
-#     fs.create_file("content/posts/test_post.md")
-
-#     mock_parse_metadata.return_value = {"meta": "meta"}
-#     mock_md_parse.return_value = "content"
-
-#     mysgen = MySGEN(CONFIG_FILE)
-#     posts = {}
-#     mysgen.base = {"content": ""}
-#     # mysgen.md_parse.convert = "content"
-#     mysgen._parse(posts, "item", "posts")
-
-
-# with open(this_dir + "/fixtures/test_page.md", "r") as file:
-#     test_page = file.read()
-
-
-# @patch("mysgen.main.CONTENT", "content")
-# @patch("builtins.open", mock_open(read_data=test_page))
-# def test_unit_parse_page(fs):
-#     """
-#     Test parse function for pages.
-#     """
-
-#     fs.create_file("content/pages/test_page.md")
-
-#     pages = {}
-#     parse(pages, "pages")
-
-#     page = list(pages.keys())[0]
-#     assert os.path.exists("content/pages/test_page.md")
-#     assert page == "test_page.md"
-#     assert pages[page].meta["title"] == "Test page"
-#     assert pages[page].meta["date"] == datetime(2021, 1, 24, 0, 0)
-#     assert pages[page].meta["author"] == "A man has no name"
-#     assert pages[page].meta["url"] == "test.html"
-#     assert pages[page].meta["status"] == "published"
-#     assert pages[page].content == "<p>Text.</p>"
-
-
 @patch.object(os, "listdir")
 @patch.object(MySGEN, "_parse")
 def test_unit_parse_posts(mock_parse_posts, mock_listdir):
     """
     Test the parse posts method.
     """
-
     expected = ["f1", "f2"]
     mock_listdir.return_value = expected
 
@@ -219,7 +162,6 @@ def test_unit_parse_pages(mock_parse_pages, mock_listdir):
     """
     Test the parse pages method.
     """
-
     expected = ["f1.md", "f2.md"]
     mock_listdir.return_value = expected
 
@@ -238,7 +180,6 @@ def test_unit_build_menu():
     """
     Test build menu function.
     """
-
     mysgen = MySGEN(CONFIG_FILE)
     mysgen.pages = ["test_page1", "test_page2"]
     mysgen.base = {"menuitems": {"home": "", "archive": "archive"}}
