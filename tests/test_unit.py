@@ -13,7 +13,7 @@ from mysgen.main import init, main, MySGEN
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
-CONFIG_FILE = "../../site/config.json"
+CONFIG_FILE = "fixtures/config.json"
 
 
 @patch("mysgen.main.main")
