@@ -2,11 +2,10 @@
 Functions to test mysgen.
 """
 import os
-from unittest.mock import patch, Mock, mock_open
+import json
 from datetime import datetime
 from collections import OrderedDict
-import json
-import markdown
+from unittest.mock import patch, mock_open
 from mysgen.main import init, main, MySGEN
 
 
