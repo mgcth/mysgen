@@ -117,6 +117,7 @@ class MySGEN:
             posts = os.listdir(os.path.join(self.base["content"], path))
         except FileNotFoundError as e:
             print("No posts. Skipping.")
+            print(e)
             return None
 
         for item in posts:
@@ -130,6 +131,7 @@ class MySGEN:
             pages = os.listdir(os.path.join(self.base["content"], path))
         except FileNotFoundError as e:
             print("No pages. Skipping.")
+            print(e)
             return None
 
         for item in pages:
