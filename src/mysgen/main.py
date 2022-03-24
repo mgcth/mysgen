@@ -36,7 +36,6 @@ class MySGEN:
         """
         Initialise MySGEN object.
         """
-
         self.config_file = config_file
         self.template = {}
         self.posts = {}
@@ -47,7 +46,6 @@ class MySGEN:
         """
         Set base configuration.
         """
-
         with open(self.config_file, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
@@ -63,7 +61,6 @@ class MySGEN:
         """
         Define Jinja environment.
         """
-
         env = Environment(
             loader=FileSystemLoader(self.base["templates"]),
             trim_blocks=True,
@@ -83,7 +80,6 @@ class MySGEN:
         """
         Parse post and page metadata.
         """
-
         for key, value in meta.items():
             if value:
                 if key == "date":
@@ -104,7 +100,6 @@ class MySGEN:
         """
         Parse both posts and pages.
         """
-
         item_path = os.path.join(os.path.join(self.base["content"], path), item)
 
         with open(item_path, "r") as file:
@@ -118,7 +113,6 @@ class MySGEN:
         """
         Parse posts.
         """
-
         try:
             posts = os.listdir(os.path.join(self.base["content"], path))
         except FileNotFoundError as e:
@@ -126,13 +120,12 @@ class MySGEN:
             return None
 
         for item in posts:
-                self._parse(self.posts, item, path)
+            self._parse(self.posts, item, path)
 
     def _parse_pages(self, path="pages"):
         """
         Parse pages.
         """
-
         try:
             pages = os.listdir(os.path.join(self.base["content"], path))
         except FileNotFoundError as e:
@@ -150,7 +143,6 @@ class MySGEN:
         """
         Process all published posts.
         """
-
         for post in self.posts:
             if self.posts[post].meta["status"] == "published":
                 postpath = os.path.join("posts", post.split(".")[0])
@@ -179,7 +171,6 @@ class MySGEN:
         """
         Process all pages.
         """
-
         self.pages["home.md"].content = self.pages["home.md"].content.replace(
             "{{update_date}}", self.date
         )
@@ -220,7 +211,6 @@ class MySGEN:
         """
         Build the main menu based on pages.
         """
-
         names = list(self.base["menuitems"].keys())
         for page in self.pages:
             name = page.split(".")[0]
@@ -232,7 +222,6 @@ class MySGEN:
         """
         Copy post's data to output from contents.
         """
-
         try:
             post_data = self.posts[post].meta["data"].split(", ")
         except KeyError:
@@ -253,7 +242,6 @@ class MySGEN:
         """
         Resize post's image for photo gallery.
         """
-
         img = Image.open(to_file)
         width, height = img.size
         small_height = self.base["small_image_height"]
@@ -271,7 +259,6 @@ class MySGEN:
         """
         Copy post's image to output from contents.
         """
-
         if "image" in self.posts[post].meta:
             if self.posts[post].meta["image"]:
                 from_file = os.path.join(
@@ -297,7 +284,6 @@ class MySGEN:
         """
         Copy files from to.
         """
-
         shutil.copyfile(
             from_file,
             to_file,
@@ -307,7 +293,6 @@ class MySGEN:
         """
         Some markdown posts contain tags that need replacing.
         """
-
         if self.posts[post].content.find(self.base["posturl"]) > 0:
             self.posts[post].content = self.posts[post].content.replace(
                 self.base["posturl"],
@@ -318,7 +303,6 @@ class MySGEN:
         """
         Build site.
         """
-
         self._set_base_config()
         self._define_environment()
         self._parse_posts()
@@ -332,7 +316,6 @@ def main(config_file):
     """
     mysgen main function.
     """
-
     mysgen = MySGEN(config_file)
     mysgen.build()
 
@@ -341,7 +324,6 @@ def init(config_file):
     """
     Entry point to main.
     """
-
     if __name__ == "__main__":
         main(config_file)
 
