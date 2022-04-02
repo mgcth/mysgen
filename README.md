@@ -1,3 +1,4 @@
+[![Unit tests](https://github.com/mgcth/mysgen/actions/workflows/github-actions-unit-tests-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-unit-tests-mgcth.yml)
 # mysgen
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
