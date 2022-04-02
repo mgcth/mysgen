@@ -1,5 +1,5 @@
-[![Linting](https://github.com/mgcth/mysgen/actions/workflows/github-actions-linting-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-linting-mgcth.yml)
-[![Unit tests](https://github.com/mgcth/mysgen/actions/workflows/github-actions-unit-tests-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-unit-tests-mgcth.yml)
+[![lint](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint-mgcth.yml)
+[![build](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build-mgcth.yml)
 # mysgen
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
