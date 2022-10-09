@@ -6,7 +6,7 @@
     "default_lang": "en-gb",
     "site_path": "",
     "template_path": "",
-    "content": "tests/fixtures/content",
+    "content": "tests/fixtures/content/",
     "templates": "tests/fixtures/template",
     "output": "tests/output",
     "home": "home",

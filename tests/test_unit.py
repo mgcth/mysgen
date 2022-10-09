@@ -7,7 +7,7 @@ import pytest
 from datetime import datetime
 from mysgen.mysgen import MySGEN, Post, ImagePost, DataPost, Page
 from collections import OrderedDict
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
 
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
@@ -69,14 +69,14 @@ class TestUnitMySGEN:
         assert mock_process.call_count == 2
 
     @patch("builtins.open", mock_open(read_data=test_config))
-    def test_unit_mysgen_set_base_config(self, fs):
+    def test_unit_mysgen_set_base_config(self):
         """
         Test MySGEN set_base_config method.
         """
         with open(test_config, "r") as file:
             base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
-        fs.create_file("../../site/test_config.json")
+        # fs.create_file("../../site/test_config.json")
 
         mysgen = MySGEN(CONFIG_FILE)
         mysgen.set_base_config()
@@ -188,14 +188,14 @@ class TestUnitMySGEN:
     @patch("builtins.open", mock_open(read_data=test_post))
     @patch("mysgen.mysgen.markdown.Markdown")
     @patch("mysgen.mysgen.MySGEN._format_metadata")
-    def test_unit_parse(self, mock_format_metadata, mock_markdown, fs):
+    def test_unit_parse(self, mock_format_metadata, mock_markdown):
         """
         Test the parse pages method.
         """
         mysgen = MySGEN(CONFIG_FILE)
-        mysgen.base = {"content": "test"}
+        mysgen.base = MagicMock()
         mysgen.markdown = mock_markdown
-        meta, content = mysgen._parse("path")
+        meta, content = mysgen._parse(MagicMock())
 
         assert meta == mock_format_metadata.return_value
         assert content == mock_markdown.convert.return_value

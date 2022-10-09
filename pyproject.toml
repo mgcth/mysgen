@@ -11,13 +11,13 @@ readme = "README.md"
 authors = [
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.7"
 dependencies = [
     "Markdown ~= 3.3",
     "Pillow ~= 9.0",
-    "jinja2 ~= 2.11",
+    "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
-    "MarkupSafe ~= 2.0",
+    "MarkupSafe == 1.1.1",
 ]
 
 [project.optional-dependencies]
