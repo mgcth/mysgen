@@ -12,7 +12,13 @@ authors = [
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
 requires-python = ">=3.9"
-dependencies = ["Markdown==3.3", "Pillow==9.0", "jinja2==2.11"]
+dependencies = [
+    "Markdown ~= 3.3",
+    "Pillow ~= 9.0",
+    "jinja2 ~= 2.11",
+    "python-markdown-math ~= 0.8",
+    "MarkupSafe ~= 2.0",
+]
 
 [project.optional-dependencies]
 dev = ["pytest ~= 7.1", "black ~= 22.8", "flake8 ~= 5.0", "pre-commit ~= 2.20"]
