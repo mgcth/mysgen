@@ -1,8 +1,8 @@
-title: Test page
+title: Archive
 date: 2021-01-24
 author: A man has no name
-url:
-type: index
+url: archive
+type: archive
 status: published
 
 Text.

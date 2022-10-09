@@ -1,39 +1,39 @@
-                  {% if meta.image %}
-                  <article class="article-image">
-                    <figure>
-                      <img class="post-image" src="/{{path}}/{{meta.image}}"/>
-                    </figure>
-                    <div class="article-image-wrapper">
-                      <div class="article-image-inside">
+                    {% if meta.image %}
+                    <article class="article-image">
+                        <figure>
+                            <img class="post-image" src="/{{path}}/{{meta.image}}"/>
+                        </figure>
+                        <div class="article-image-wrapper">
+                        <div class="article-image-inside">
+                            <header>
+                                <h1 class="entry-title">{{ meta.title }}</h1>
+                                <span class="published" title="{{ meta.date.isoformat() }}">
+                                    / {{ meta.date.strftime("%Y-%m-%d") }} /
+                                </span>
+                                <span class="entry-title">
+                                    {{ meta.category }}
+                                </span>
+                            </header>
+                        </div>
+                        </div>
+                        <footer class="post-info"></footer>
+                    </article>
+                    {% else %}
+                    <article class="article">
                         <header>
-                          <h1 class="entry-title">{{ meta.title }}</h1>
-                          <span class="published" title="{{ meta.date.isoformat() }}">
-                            / {{ meta.date.strftime("%Y-%m-%d") }} /
-                          </span>
-                          <span class="entry-title">
-                            {{ meta.category }}
-                          </span>
+                            <h1 class="entry-title">{{ meta.title }}</h1>
+                            <span class="published" title="{{ meta.date.isoformat() }}">
+                                / {{ meta.date.strftime("%Y-%m-%d") }} /
+                            </span>
+                            <span class="entry-title">
+                                {{ meta.category }}
+                            </span>
                         </header>
-                      </div>
-                    </div>
-                    <footer class="post-info"></footer>
-                  </article>
-                  {% else %}
-                  <article class="article">
-                    <header>
-                      <h1 class="entry-title">{{ meta.title }}</h1>
-                      <span class="published" title="{{ meta.date.isoformat() }}">
-                        / {{ meta.date.strftime("%Y-%m-%d") }} /
-                      </span>
-                      <span class="entry-title">
-                        {{ meta.category }}
-                      </span>
-                    </header>
-                    <div class="article-content hyphenate">
-                      <div class="article_body">
-                        {{ content }}
-                      </div>
-                    </div>
-                    <footer class="post-info"></footer>
-                  </article>
-                  {% endif %}
+                        <div class="article-content hyphenate">
+                            <div class="article_body">
+                                {{ content }}
+                            </div>
+                        </div>
+                        <footer class="post-info"></footer>
+                    </article>
+                    {% endif %}

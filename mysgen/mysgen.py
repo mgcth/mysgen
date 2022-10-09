@@ -202,7 +202,8 @@ class Page:
         Process all pages.
         """
         output = base["output"]
-        page_path = self.meta["url"]
+        page_path = self.meta["url"].replace("pages/", "")
+        page_path = "" if page_path == base["home"] else page_path
         build_date = base["build_date"]
         self._patch_content(build_date, datetime.now().strftime("%Y-%m-%d"))
         page_html = template[self.meta["type"]].render(
@@ -301,7 +302,7 @@ class MySGEN:
             if name not in names:
                 self.base["menuitems"][name] = name
 
-        self.base["menuitems"]["home"] = ""  # hack for now
+        # self.base["menuitems"]["home"] = ""  # hack for now
         self.base["js_menu"] = list(self.base["menuitems"].keys())
 
     def find_and_parse(self, item_type: str) -> None:
@@ -368,15 +369,15 @@ class MySGEN:
         ]
         posts_metadata = sorted(posts_metadata, key=lambda x: x["date"], reverse=True)
 
-        for item_key, item_value in data.items():
-            if item_value.meta["status"] != "published":
+        for _, item_object in data.items():
+            if item_object.meta["status"] != "published":
                 continue
 
             if item_type == "posts":
-                item_value.process(self.template, self.base.copy())
+                item_object.process(self.template, self.base.copy())
 
             if item_type == "pages":
-                item_value.process(
+                item_object.process(
                     self.template, self.base.copy(), self.pages, posts_metadata
                 )
 
@@ -388,14 +389,14 @@ class MySGEN:
             meta: dictionary of metadata
         """
         for key, value in meta.items():
-            if value is None:
+            if value == "":
                 continue
 
             if key == "date":
                 meta[key] = datetime.strptime(value.pop(), "%Y-%m-%d")
                 continue
-            else:
-                meta[key] = value.pop()
+
+            meta[key] = value.pop()
 
             if key == "tags":
                 meta[key] = meta[key].split(",")
@@ -419,9 +420,9 @@ class MySGEN:
         """
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
-            meta = self._format_metadata(defaultdict(lambda: False, self.markdown.Meta))
+            meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
             meta["path"] = item_path
-            meta["url"] = "/".join(item_path.split(".")[0].split("/")[1:])
+            meta["url"] = item_path.strip(self.base["content"]).strip(".md")
             self.markdown.reset()
 
         return meta, content
