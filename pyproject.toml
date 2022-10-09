@@ -21,4 +21,5 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+test = ["pytest ~= 7.1"]
 dev = ["pytest ~= 7.1", "black ~= 22.8", "flake8 ~= 5.0", "pre-commit ~= 2.20"]
