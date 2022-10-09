@@ -2,7 +2,7 @@
 Integration test of mysgen.
 """
 import os
-from mysgen.main import main
+from mysgen.mysgen import MySGEN
 
 
 CONFIG_FILE = "tests/fixtures/test_config.json"
@@ -15,7 +15,8 @@ def test_integration_mysgen():
     Integration test for mysgen.
     """
 
-    main(CONFIG_FILE)
+    mysgen = MySGEN(CONFIG_FILE)
+    mysgen.build()
 
     known_files = [
         os.path.join(path, name)

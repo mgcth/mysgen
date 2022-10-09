@@ -1,17 +1,17 @@
-                  {% if articles.meta.image %}
+                  {% if meta.image %}
                   <article class="article-image">
                     <figure>
-                      <img class="post-image" src="/{{path}}/{{articles.meta.image}}"/>
+                      <img class="post-image" src="/{{path}}/{{meta.image}}"/>
                     </figure>
                     <div class="article-image-wrapper">
                       <div class="article-image-inside">
                         <header>
-                          <h1 class="entry-title">{{ articles.meta.title }}</h1>
-                          <span class="published" title="{{ articles.meta.date.isoformat() }}">
-                            / {{ articles.meta.date.strftime("%Y-%m-%d") }} /
+                          <h1 class="entry-title">{{ meta.title }}</h1>
+                          <span class="published" title="{{ meta.date.isoformat() }}">
+                            / {{ meta.date.strftime("%Y-%m-%d") }} /
                           </span>
                           <span class="entry-title">
-                            {{ articles.meta.category }}
+                            {{ meta.category }}
                           </span>
                         </header>
                       </div>
@@ -21,17 +21,17 @@
                   {% else %}
                   <article class="article">
                     <header>
-                      <h1 class="entry-title">{{ articles.meta.title }}</h1>
-                      <span class="published" title="{{ articles.meta.date.isoformat() }}">
-                        / {{ articles.meta.date.strftime("%Y-%m-%d") }} /
+                      <h1 class="entry-title">{{ meta.title }}</h1>
+                      <span class="published" title="{{ meta.date.isoformat() }}">
+                        / {{ meta.date.strftime("%Y-%m-%d") }} /
                       </span>
                       <span class="entry-title">
-                        {{ articles.meta.category }}
+                        {{ meta.category }}
                       </span>
                     </header>
                     <div class="article-content hyphenate">
                       <div class="article_body">
-                        {{ articles.content }}
+                        {{ content }}
                       </div>
                     </div>
                     <footer class="post-info"></footer>
