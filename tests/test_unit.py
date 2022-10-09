@@ -19,31 +19,27 @@ def test_unit_mysgen_init():
     """
     Test MySGEN init method.
     """
-    date = datetime.now().strftime("%Y-%m-%d")
     mysgen = MySGEN(CONFIG_FILE)
 
     assert mysgen.config_file == CONFIG_FILE
+    assert mysgen.base == {}
     assert mysgen.template == {}
     assert mysgen.posts == {}
     assert mysgen.pages == {}
-    assert mysgen.date == date
+    assert mysgen.markdown is None
 
 
-@patch.object(MySGEN, "_process_pages")
-@patch.object(MySGEN, "_process_posts")
-@patch.object(MySGEN, "_build_menu")
-@patch.object(MySGEN, "_parse_pages")
-@patch.object(MySGEN, "_parse_posts")
-@patch.object(MySGEN, "_define_environment")
-@patch.object(MySGEN, "_set_base_config")
+@patch("mysgen.mysgen.MySGEN.process")
+@patch("mysgen.mysgen.MySGEN.build_menu")
+@patch("mysgen.mysgen.MySGEN.find_and_parse")
+@patch("mysgen.mysgen.MySGEN.define_environment")
+@patch("mysgen.mysgen.MySGEN.set_base_config")
 def test_unit_mysgen_build(
     mock_set_base_config,
     mock_define_environment,
-    mock_parse_posts,
-    mock_parse_pages,
+    mock_find_and_parse,
     mock_build_menu,
-    mock_process_posts,
-    mock_process_pages,
+    mock_process,
 ):
     """
     Test MySGEN build function.
@@ -52,11 +48,9 @@ def test_unit_mysgen_build(
     mysgen.build()
     mock_set_base_config.assert_called_once()
     mock_define_environment.assert_called_once()
-    mock_parse_posts.assert_called_once()
-    mock_parse_pages.assert_called_once()
+    assert mock_find_and_parse.call_count == 2
     mock_build_menu.assert_called_once()
-    mock_process_posts.assert_called_once()
-    mock_process_pages.assert_called_once()
+    assert mock_process.call_count == 2
 
 
 with open(this_dir + "/fixtures/test_config.json", "r") as file:
@@ -162,7 +156,7 @@ def test_unit_build_menu():
     mysgen = MySGEN(CONFIG_FILE)
     mysgen.pages = ["test_page1", "test_page2"]
     mysgen.base = {"menuitems": {"home": "", "archive": "archive"}}
-    mysgen._build_menu()
+    mysgen.build_menu()
 
     assert mysgen.base["menuitems"] == {
         "home": "",
