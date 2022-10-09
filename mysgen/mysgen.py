@@ -1,6 +1,7 @@
 """
 mysgen, a simple static site generator in Python.
 """
+from __future__ import annotations
 import os
 import json
 import glob
@@ -8,7 +9,6 @@ import shutil
 import markdown
 from PIL import Image
 from datetime import datetime
-from __future__ import annotations
 from distutils.dir_util import copy_tree
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader
