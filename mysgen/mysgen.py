@@ -212,8 +212,6 @@ class Page:
             page_name=self.meta["type"],
         )
 
-        print(output)
-        print(page_path)
         os.makedirs(os.path.join(output, page_path), exist_ok=True)
         with open(os.path.join(output, page_path, INDEX), "w") as file:
             file.write(page_html)
