@@ -8,6 +8,7 @@ import shutil
 import markdown
 from PIL import Image
 from datetime import datetime
+from __future__ import annotations
 from distutils.dir_util import copy_tree
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader
