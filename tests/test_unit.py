@@ -4,35 +4,15 @@ Functions to test mysgen.
 import os
 import json
 from datetime import datetime
+from mysgen.mysgen import MySGEN
 from collections import OrderedDict
 from unittest.mock import patch, mock_open
-from mysgen.main import init, main, MySGEN
 
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 CONFIG_FILE = "fixtures/config.json"
-
-
-@patch("mysgen.main.main")
-@patch("mysgen.main.__name__", "__main__")
-def test_unit_init(mock_main):
-    """
-    Test init function.
-    """
-    init(CONFIG_FILE)
-    mock_main.assert_called_once()
-
-
-@patch("mysgen.main.MySGEN")
-def test_unit_main(mock_mysgen):
-    """
-    Test main function.
-    """
-    main(CONFIG_FILE)
-    mock_mysgen.assert_called_once()
-    mock_mysgen.return_value.build.assert_called_once()
 
 
 def test_unit_mysgen_init():
