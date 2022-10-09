@@ -161,7 +161,7 @@ class ImagePost(Post):
         width, height = img.size
         small_height = base["small_image_height"]
         small_width = small_height * width // height
-        img = img.resize((small_width, small_height), Image.ANTIALIAS)
+        img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
 
         path, file_id = os.path.split(to_file)
         im_name_split = file_id.split(".")
