@@ -18,7 +18,45 @@ CONFIG_FILE = "config.json"
 INDEX = "index.html"
 
 
-class Post:
+class Item:
+    """
+    Item base class.
+    """
+
+    def __init__(self, meta: dict, content: str) -> None:
+        """
+        Initialise item object.
+
+        Args:
+            meta: meta dictionary
+            content: content string
+            settings: settings dictionary
+        """
+        self.meta = meta
+        self.content = content
+
+    def _patch_content(self, pattern: str, patch: str) -> None:
+        """
+        Some markdown posts contain tags that need replacing.
+
+        Args:
+            pattern: pattern to search for
+            patch: patch to apply in place of pattern
+        """
+        self.content = self.content.replace(pattern, patch)
+
+    def process(self, base: dict, template: Environment) -> None:
+        """
+        Process item.
+        """
+        item_html = template.render(base)
+        path = os.path.join(base["output"], base["path"])
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, INDEX), "w") as file:
+            file.write(item_html)
+
+
+class Post(Item):
     """
     Post class.
     """
@@ -31,50 +69,20 @@ class Post:
             meta: meta dictionary
             content: content string
         """
-        self.meta = meta
-        self.content = content
+        super().__init__(meta, content)
 
-    def process(self, template, base):
+    def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
         """
-        self._process_item(template, base)
+        base["meta"] = self.meta
+        base["content"] = self.content
+        base["path"] = self.meta["url"]
+        base["page"] = base["home"]
+        base["page_name"] = INDEX.split(".")[0]
 
-    def _process_item(self, template, base):
-        """
-        Process all published posts.
-        """
-        home = base["home"]
-        output = base["output"]
-        content = base["content"]
-        post_url = base["post_url"]
-        post_path = self.meta["url"]
-        template = template["article"]
-        self._patch_content(post_url, os.path.join("/", post_path))
-        post_html = template.render(
-            base,
-            meta=self.meta,
-            content=self.content,
-            path=post_path,
-            page=home,
-            page_name=INDEX.split(".")[0],
-        )
-
-        os.makedirs(os.path.join(output, post_path), exist_ok=True)
-        with open(os.path.join(output, post_path, INDEX), "w") as file:
-            file.write(post_html)
-
-        return post_path, output, content
-
-    def _patch_content(self, pattern: str, patch: str) -> None:
-        """
-        Some markdown posts contain tags that need replacing.
-
-        Args:
-            pattern: pattern to search for
-            patch: patch to apply in place of pattern
-        """
-        self.content = self.content.replace(pattern, patch)
+        self._patch_content(base["post_url"], os.path.join("/", self.meta["url"]))
+        super().process(base, template["article"])
 
     def _copy(self, from_file, to_file) -> None:
         """
@@ -98,14 +106,26 @@ class ImagePost(Post):
         """
         super().__init__(meta, content)
 
-    def process(self, template, base):
+    def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
         """
-        post_path, output, content = self._process_item(template, base)
-        self._copy_image(base, content, output, post_path)
+        super().process(base, template)
+        self._copy_image(base)
 
-    def _resize_image(self, base, to_file) -> None:
+    def _copy_image(self, base: dict) -> None:
+        """
+        Copy post's image to output from contents.
+        """
+        try:
+            from_file = os.path.join(base["content"], "images", self.meta["image"])
+            to_file = os.path.join(base["output"], base["path"], self.meta["image"])
+            self._copy(from_file, to_file)
+            self._resize_image(base, to_file)
+        except KeyError:
+            raise KeyError("No image in post.")
+
+    def _resize_image(self, base: dict, to_file: str) -> None:
         """
         Resize post's image for photo gallery.
         """
@@ -121,18 +141,6 @@ class ImagePost(Post):
 
         img.save(os.path.join(path, im_name_split[0] + "_small." + im_name_split[1]))
         self.meta["small_image"] = small_name
-
-    def _copy_image(self, base, content, output, post_path) -> None:
-        """
-        Copy post's image to output from contents.
-        """
-        try:
-            from_file = os.path.join(content, "images", self.meta["image"])
-            to_file = os.path.join(output, post_path, self.meta["image"])
-            self._copy(from_file, to_file)
-            self._resize_image(base, to_file)
-        except KeyError:
-            raise KeyError("No image in post.")
 
 
 class DataPost(Post):
@@ -150,14 +158,14 @@ class DataPost(Post):
         """
         super().__init__(meta, content)
 
-    def process(self, template, base):
+    def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
         """
-        post_path, output, content = self._process_item(template, base)
-        self._copy_data(output, content, post_path)
+        super().process(base, template)
+        self._copy_data(base)
 
-    def _copy_data(self, output, content, post_path) -> None:
+    def _copy_data(self, base: dict) -> None:
         """
         Copy post's data to output from contents.
 
@@ -174,14 +182,14 @@ class DataPost(Post):
             raise KeyError("No data in post.")
 
         for data in post_data:
-            data_path = os.path.join(content, "data", data)
+            data_path = os.path.join(base["content"], "data", data)
             if os.path.isfile(data_path):
-                self._copy(data_path, os.path.join(output, post_path, data))
+                self._copy(data_path, os.path.join(base["output"], base["path"], data))
             else:
-                copy_tree(data_path, os.path.join(output, post_path))
+                copy_tree(data_path, os.path.join(base["output"], base["path"]))
 
 
-class Page:
+class Page(Item):
     """
     Page class.
     """
@@ -197,35 +205,21 @@ class Page:
         self.meta = meta
         self.content = content
 
-    def process(self, template, base, pages, posts_metadata) -> None:
+    def process(
+        self, base: dict, template: dict, pages: dict = {}, posts_metadata: dict = {}
+    ) -> None:
         """
         Process all pages.
         """
-        output = base["output"]
         page_path = self.meta["url"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
-        build_date = base["build_date"]
-        self._patch_content(build_date, datetime.now().strftime("%Y-%m-%d"))
-        page_html = template[self.meta["type"]].render(
-            base,
-            pages=pages,
-            articles=posts_metadata,
-            page_name=self.meta["type"],
-        )
+        base["path"] = page_path
+        base["pages"] = pages
+        base["page_name"] = self.meta["type"]
+        base["articles"] = posts_metadata
 
-        os.makedirs(os.path.join(output, page_path), exist_ok=True)
-        with open(os.path.join(output, page_path, INDEX), "w") as file:
-            file.write(page_html)
-
-    def _patch_content(self, pattern: str, patch: str) -> None:
-        """
-        Some markdown posts contain tags that need replacing.
-
-        Args:
-            pattern: pattern to search for
-            patch: patch to apply in place of pattern
-        """
-        self.content = self.content.replace(pattern, patch)
+        self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
+        super().process(base, template[self.meta["type"]])
 
 
 class MySGEN:
@@ -374,11 +368,11 @@ class MySGEN:
                 continue
 
             if item_type == "posts":
-                item_object.process(self.template, self.base.copy())
+                item_object.process(self.base.copy(), self.template)
 
             if item_type == "pages":
                 item_object.process(
-                    self.template, self.base.copy(), self.pages, posts_metadata
+                    self.base.copy(), self.template, self.pages, posts_metadata
                 )
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:
