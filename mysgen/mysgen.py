@@ -35,6 +35,20 @@ class Item:
         self.meta = meta
         self.content = content
 
+    def process(self, base: dict, template: Environment) -> None:
+        """
+        Process item.
+
+        Args:
+            base: base variables
+            template: selected template
+        """
+        item_html = template.render(base)
+        path = os.path.join(base["output"], base["path"])
+        os.makedirs(path, exist_ok=True)
+        with open(os.path.join(path, INDEX), "w") as file:
+            file.write(item_html)
+
     def _patch_content(self, pattern: str, patch: str) -> None:
         """
         Some markdown posts contain tags that need replacing.
@@ -44,16 +58,6 @@ class Item:
             patch: patch to apply in place of pattern
         """
         self.content = self.content.replace(pattern, patch)
-
-    def process(self, base: dict, template: Environment) -> None:
-        """
-        Process item.
-        """
-        item_html = template.render(base)
-        path = os.path.join(base["output"], base["path"])
-        os.makedirs(path, exist_ok=True)
-        with open(os.path.join(path, INDEX), "w") as file:
-            file.write(item_html)
 
 
 class Post(Item):
@@ -74,19 +78,27 @@ class Post(Item):
     def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
         """
         base["meta"] = self.meta
-        base["content"] = self.content
-        base["path"] = self.meta["url"]
+        base["article_content"] = self.content
+        base["path"] = self.meta["path"]
         base["page"] = base["home"]
         base["page_name"] = INDEX.split(".")[0]
 
-        self._patch_content(base["post_url"], os.path.join("/", self.meta["url"]))
+        self._patch_content(base["post_url"], os.path.join("/", self.meta["path"]))
         super().process(base, template["article"])
 
     def _copy(self, from_file, to_file) -> None:
         """
         Copy files from to.
+
+        Args:
+            from_file: from file path
+            to_file: to file path
         """
         shutil.copyfile(from_file, to_file)
 
@@ -109,6 +121,10 @@ class ImagePost(Post):
     def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
         """
         super().process(base, template)
         self._copy_image(base)
@@ -116,6 +132,12 @@ class ImagePost(Post):
     def _copy_image(self, base: dict) -> None:
         """
         Copy post's image to output from contents.
+
+        Args:
+            base: base variables
+
+        Raises:
+            FileNotFoundError
         """
         try:
             from_file = os.path.join(base["content"], "images", self.meta["image"])
@@ -124,10 +146,16 @@ class ImagePost(Post):
             self._resize_image(base, to_file)
         except KeyError:
             raise KeyError("No image in post.")
+        except FileNotFoundError:
+            raise FileNotFoundError("File {0} not found".format(from_file))
 
     def _resize_image(self, base: dict, to_file: str) -> None:
         """
         Resize post's image for photo gallery.
+
+        Args:
+            base: base variables
+            to_file: file to resize
         """
         img = Image.open(to_file)
         width, height = img.size
@@ -161,6 +189,10 @@ class DataPost(Post):
     def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
         """
         super().process(base, template)
         self._copy_data(base)
@@ -170,8 +202,7 @@ class DataPost(Post):
         Copy post's data to output from contents.
 
         Args:
-            post: post
-            post_path: path to post
+            base: base variables
 
         Raises:
             KeyError
@@ -210,8 +241,14 @@ class Page(Item):
     ) -> None:
         """
         Process all pages.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
+            pages: all pages
+            posts_metadata: all published posts metadata
         """
-        page_path = self.meta["url"].replace("pages/", "")
+        page_path = self.meta["path"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
         base["path"] = page_path
         base["pages"] = pages
@@ -381,6 +418,9 @@ class MySGEN:
 
         Args:
             meta: dictionary of metadata
+
+        Returns:
+            meta: formatted metadata dictionary
         """
         for key, value in meta.items():
             if value == "":
@@ -415,8 +455,20 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
             meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
-            meta["path"] = item_path
-            meta["url"] = item_path.strip(self.base["content"]).strip(".md")
+            meta["path"] = item_path.replace(self.base["content"], "")
+            meta["path"] = meta["path"].replace(".md", "")
             self.markdown.reset()
 
         return meta, content
+
+
+def build():
+    """
+    Run MySGEN
+    """
+    if __name__ == "__main__":
+        mysgen = MySGEN()
+        mysgen.build()
+
+
+build()
