@@ -138,7 +138,8 @@ class ImagePost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        self.from_path = join(self.src_path, "images", self.meta["path"])
+        path = self.meta["path"].replace("posts/", "")
+        self.from_path = join(self.src_path, "images", path)
         self.to_path = join(self.build_path, self.meta["path"], "images")
 
     def process(self, base: dict, template: dict) -> None:
@@ -158,7 +159,7 @@ class ImagePost(Post):
         """
         Resize post images for photo gallery.
         """
-        for to_image in glob.glob(join(self.build_path, self.meta["path"], "images")):
+        for to_image in glob.glob(join(self.to_path)):
             with Image.open(to_image) as img:
                 width, height = img.size
                 small_height = self.meta["small_image_height"]
@@ -191,7 +192,8 @@ class DataPost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        self.from_path = join(self.src_path, "data", self.meta["path"])
+        path = self.meta["path"].replace("posts/", "")
+        self.from_path = join(self.src_path, "data", path)
         self.to_path = join(self.build_path, self.meta["path"], "data")
 
     def process(self, base: dict, template: dict) -> None:

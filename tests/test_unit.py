@@ -311,15 +311,15 @@ class TestUnitImagePost:
         """
         Unit test of ImagePost init method.
         """
-        meta = {"path": "path"}
+        meta = {"path": "posts/post"}
         post = ImagePost(meta, "content", "src", "build")
 
         assert post.meta == meta
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
-        assert post.from_path == "src/images/path"
-        assert post.to_path == "build/path/images"
+        assert post.from_path == "src/images/post"
+        assert post.to_path == "build/posts/post/images"
 
     @patch("mysgen.mysgen.Post.copy")
     @patch("mysgen.mysgen.Post.process")
@@ -351,15 +351,15 @@ class TestUnitDataPost:
         """
         Unit test of DataPost init method.
         """
-        meta = {"path": "path"}
+        meta = {"path": "posts/post"}
         post = DataPost(meta, "content", "src", "build")
 
         assert post.meta == meta
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
-        assert post.from_path == "src/data/path"
-        assert post.to_path == "build/path/data"
+        assert post.from_path == "src/data/post"
+        assert post.to_path == "build/posts/post/data"
 
     @patch("mysgen.mysgen.DataPost.copy")
     @patch("mysgen.mysgen.Post.process")
