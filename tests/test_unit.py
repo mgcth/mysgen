@@ -257,6 +257,8 @@ class TestUnitPost:
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
+        assert post.from_path is None
+        assert post.to_path is None
 
     @pytest.mark.parametrize(
         "meta, content, base, template",
@@ -288,56 +290,16 @@ class TestUnitPost:
         mock_item_process.assert_called_once_with(base, template["article"])
 
     @patch("mysgen.mysgen.copy_tree")
-    @patch("mysgen.mysgen.shutil.copyfile")
-    def test_unit_post_copy(self, mock_shutil_copyfile, mock_copy_tree):
+    def test_unit_post_copy(self, mock_copy_tree):
         """
         Unit test of Post _copy method.
         """
         post = Post({}, "content", "src", "build")
-        post._copy("from", "to")
+        post.from_path = "from"
+        post.to_path = "to"
+        post.copy()
 
-        mock_shutil_copyfile.assert_called_once_with("from", "to")
-
-    @pytest.mark.parametrize(
-        "meta, content, src, build, item, expect",
-        [
-            (
-                {"data": "data_1, data_2", "path": "path"},
-                "content",
-                "content",
-                "output",
-                "data",
-                [
-                    ("content/data/data_1", "output/path/data"),
-                    ("content/data/data_2", "output/path/data"),
-                ],
-            ),
-            (
-                {"data": "data_1", "path": "path"},
-                "content",
-                "content",
-                "output",
-                "data",
-                [("content/data/data_1", "output/path/data")],
-            ),
-            (
-                {"data": "  data_1, ", "path": "path"},
-                "content",
-                "content",
-                "output",
-                "data",
-                [("content/data/data_1", "output/path/data")],
-            ),
-        ],
-    )
-    def test_unit_post_extract(self, meta, content, src, build, item, expect):
-        """
-        Unit test of Post _extract method.
-        """
-        post = Post(meta, content, src, build)
-        for i, (from_path, to_path) in enumerate(post._extract(item)):
-            assert from_path == expect[i][0]
-            assert to_path == expect[i][1]
+        mock_copy_tree.assert_called_once_with("from", "to")
 
 
 class TestUnitImagePost:
@@ -349,16 +311,19 @@ class TestUnitImagePost:
         """
         Unit test of ImagePost init method.
         """
-        post = ImagePost({}, "content", "src", "build")
+        meta = {"path": "path"}
+        post = ImagePost(meta, "content", "src", "build")
 
-        assert post.meta == {}
+        assert post.meta == meta
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
+        assert post.from_path == "src/images/path"
+        assert post.to_path == "build/path/images"
 
-    @patch("mysgen.mysgen.ImagePost.copy_image")
+    @patch("mysgen.mysgen.Post.copy")
     @patch("mysgen.mysgen.Post.process")
-    def test_unit_imagepost_process(self, mock_item_process, mock_imagepost_copy_image):
+    def test_unit_imagepost_process(self, mock_item_process, mock_post_copy):
         """
         Unit test of ImagePost process method.
         """
@@ -368,38 +333,7 @@ class TestUnitImagePost:
         post.process(mock_base, mock_template)
 
         mock_item_process.assert_called_once_with(mock_base, mock_template)
-        mock_imagepost_copy_image.assert_called_once_with()
-
-    @pytest.mark.parametrize(
-        "src, build, item, from_path, to_path",
-        [
-            ("content", "output", "image", "content/image/data_1", "output/path"),
-        ],
-    )
-    @patch("mysgen.mysgen.ImagePost._resize_image")
-    @patch("mysgen.mysgen.Post._copy")
-    @patch("mysgen.mysgen.Post._extract")
-    def test_unit_imagepost_copy_image(
-        self,
-        mock_extract,
-        mock_copy,
-        mock_resize_image,
-        src,
-        build,
-        item,
-        from_path,
-        to_path,
-    ):
-        """
-        Unit test of ImagePost copy_image method.
-        """
-        post = ImagePost(MagicMock(), MagicMock(), src, build)
-        mock_extract.return_value = [(from_path, to_path)]
-        post.copy_image()
-
-        mock_extract.assert_called_once_with(item)
-        mock_copy.assert_called_once_with(from_path, to_path)
-        mock_resize_image.assert_called_once_with(to_path)
+        mock_post_copy.assert_called_once()
 
     def test_unit_imagepost_resize_image(self):
         """
@@ -417,14 +351,17 @@ class TestUnitDataPost:
         """
         Unit test of DataPost init method.
         """
-        post = DataPost({}, "content", "src", "build")
+        meta = {"path": "path"}
+        post = DataPost(meta, "content", "src", "build")
 
-        assert post.meta == {}
+        assert post.meta == meta
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
+        assert post.from_path == "src/data/path"
+        assert post.to_path == "build/path/data"
 
-    @patch("mysgen.mysgen.DataPost.copy_data")
+    @patch("mysgen.mysgen.DataPost.copy")
     @patch("mysgen.mysgen.Post.process")
     def test_unit_datapost_process(self, mock_post_process, mock_datapost_copy_data):
         """
@@ -437,27 +374,6 @@ class TestUnitDataPost:
 
         mock_post_process.assert_called_once_with(mock_base, mock_template)
         mock_datapost_copy_data.assert_called_once_with()
-
-    @pytest.mark.parametrize(
-        "src, build, item, from_path, to_path",
-        [
-            ("content", "output", "data", "content/data/data_1", "output/path"),
-        ],
-    )
-    @patch("mysgen.mysgen.Post._copy")
-    @patch("mysgen.mysgen.Post._extract")
-    def test_unit_datapost_copy_data(
-        self, mock_extract, mock_copy, src, build, item, from_path, to_path
-    ):
-        """
-        Unit test of DataPost copy_data method.
-        """
-        post = DataPost(MagicMock(), MagicMock(), src, build)
-        mock_extract.return_value = [(from_path, to_path)]
-        post.copy_data()
-
-        mock_extract.assert_called_once_with(item)
-        mock_copy.assert_called_once_with(from_path, to_path)
 
 
 class TestUnitPage:

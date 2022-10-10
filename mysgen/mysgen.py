@@ -4,7 +4,6 @@ mysgen, a simple static site generator in Python.
 from __future__ import annotations
 import json
 import glob
-import shutil
 import markdown
 from PIL import Image
 from datetime import datetime
@@ -87,6 +86,8 @@ class Post(Item):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
+        self.from_path = None
+        self.to_path = None
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -104,45 +105,19 @@ class Post(Item):
         self._patch_content(base["post_url"], join("/", self.meta["path"]))
         super().process(base, template["article"])
 
-    def _copy(self, item_type) -> None:
+    def copy(self) -> None:
         """
         Copy files from to.
 
         Args:
             item_type: item type to copy
         """
-        from_path = join(self.src_path, item_type, self.meta["path"])
-        to_path = join(self.build_path, self.meta["path"], item_type)
-
         try:
-            copy_tree(from_path, to_path)
+            copy_tree(self.from_path, self.to_path)
         except FileNotFoundError:
             raise FileNotFoundError(
-                "File {from_path} not found.".format(from_path=from_path)
+                "File {from_path} not found.".format(from_path=self.from_path)
             )
-
-    def _extract(self, item_type: str):
-        """
-        Extract data from meta and return from and to paths.
-
-        Args:
-            item_type: item to search for data
-
-        Returns:
-            list of data
-
-        Raises:
-            KeyError
-        """
-        try:
-            post_data = [x.strip() for x in self.meta[item_type].split(",")]
-        except KeyError:
-            raise KeyError("No data in item.")
-
-        for data in post_data:
-            from_file = join(self.src_path, item_type, data)
-            to_file = join(self.build_path, self.meta["path"], data)
-            yield from_file, to_file
 
 
 class ImagePost(Post):
@@ -163,6 +138,8 @@ class ImagePost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
+        self.from_path = join(self.src_path, "images", self.meta["path"])
+        self.to_path = join(self.build_path, self.meta["path"], "images")
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -174,31 +151,21 @@ class ImagePost(Post):
         """
         super().process(base, template)
         self.meta["small_image_height"] = base["small_image_height"]
-        self._copy_image()
+        self.copy()
         self._resize_image()
 
-    def _copy_image(self) -> None:
-        """
-        Copy post images to output from contents.
-        """
-        self._copy("image")
-
-    def _resize_image(self, to_file: str) -> None:
+    def _resize_image(self) -> None:
         """
         Resize post images for photo gallery.
-
-        Args:
-            to_file: file to resize
         """
-        for from_path, to_path in self._extract("image"):
-            self._resize_image(to_path)
-            with Image.open(to_file) as img:
+        for to_image in glob.glob(join(self.build_path, self.meta["path"], "images")):
+            with Image.open(to_image) as img:
                 width, height = img.size
                 small_height = self.meta["small_image_height"]
                 small_width = small_height * width // height
                 img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
 
-                path, file_id = split(to_file)
+                path, file_id = split(to_image)
                 im_name_split = file_id.split(".")
                 small_name = im_name_split[0] + "_small." + im_name_split[1]
 
@@ -224,6 +191,8 @@ class DataPost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
+        self.from_path = join(self.src_path, "data", self.meta["path"])
+        self.to_path = join(self.build_path, self.meta["path"], "data")
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -234,14 +203,7 @@ class DataPost(Post):
             template: available templates dictionary
         """
         super().process(base, template)
-        self.copy_data()
-
-    def copy_data(self) -> None:
-        """
-        Copy post's data to output from contents.
-        """
-        for from_path, to_path in self._extract("data"):
-            self._copy(from_path, to_path)
+        self.copy()
 
 
 class Page(Item):
@@ -324,10 +286,7 @@ class MySGEN:
         with open(self.config_file, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
-        site_path = self.base["site_path"]
         template_path = self.base["template_path"]
-        self.base["content"] = join(site_path, self.base["content"])
-        self.base["output"] = join(site_path, self.base["output"])
         self.base["templates"] = join(template_path, self.base["templates"])
         self.base["tags"] = []
         self.base["categories"] = []
@@ -386,18 +345,22 @@ class MySGEN:
                 "Item {item_type} not found.".format(item_type=item_type)
             )
 
+        site_path = self.base["site_path"]
+        src_path = join(site_path, self.base["content"])
+        build_path = join(site_path, self.base["output"])
+
         for item_path in all_item_paths:
             item = item_path.split("/")[-1]
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
-                self.pages[item] = Page(meta, content)
+                self.pages[item] = Page(meta, content, src_path, build_path)
             elif meta["image"]:
-                self.posts[item] = ImagePost(meta, content)
+                self.posts[item] = ImagePost(meta, content, src_path, build_path)
             elif meta["data"]:
-                self.posts[item] = DataPost(meta, content)
+                self.posts[item] = DataPost(meta, content, src_path, build_path)
             else:
-                self.posts[item] = Post(meta, content)
+                self.posts[item] = Post(meta, content, src_path, build_path)
 
     def process(self, item_type: str) -> None:
         """
