@@ -2,13 +2,14 @@
 mysgen, a simple static site generator in Python.
 """
 from __future__ import annotations
-import os
 import json
 import glob
 import shutil
 import markdown
 from PIL import Image
 from datetime import datetime
+from os import listdir, makedirs
+from os.path import join, isfile, split
 from distutils.dir_util import copy_tree
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader
@@ -45,9 +46,9 @@ class Item:
             template: selected template
         """
         item_html = template.render(base)
-        path = os.path.join(base["output"], base["path"])
-        os.makedirs(path, exist_ok=True)
-        with open(os.path.join(path, INDEX), "w") as file:
+        path = join(base["output"], base["path"])
+        makedirs(path, exist_ok=True)
+        with open(join(path, INDEX), "w") as file:
             file.write(item_html)
 
     def _patch_content(self, pattern: str, patch: str) -> None:
@@ -90,18 +91,24 @@ class Post(Item):
         base["page"] = base["home"]
         base["page_name"] = INDEX.split(".")[0]
 
-        self._patch_content(base["post_url"], os.path.join("/", self.meta["path"]))
+        self._patch_content(base["post_url"], join("/", self.meta["path"]))
         super().process(base, template["article"])
 
-    def _copy(self, from_file, to_file) -> None:
+    def _copy(self, from_path, to_path) -> None:
         """
         Copy files from to.
 
         Args:
-            from_file: from file path
-            to_file: to file path
+            from_path: from file path
+            to_path: to file path
         """
-        shutil.copyfile(from_file, to_file)
+        try:
+            if isfile(from_path):
+                shutil.copyfile(from_path, to_path)
+            else:
+                copy_tree(from_path, to_path)
+        except KeyError:
+            raise KeyError("File {from_path} not found.".format(from_path=from_path))
 
 
 class ImagePost(Post):
@@ -140,15 +147,10 @@ class ImagePost(Post):
         Raises:
             FileNotFoundError
         """
-        try:
-            from_file = os.path.join(base["content"], "images", self.meta["image"])
-            to_file = os.path.join(base["output"], base["path"], self.meta["image"])
-            self._copy(from_file, to_file)
-            self._resize_image(base, to_file)
-        except KeyError:
-            raise KeyError("No image in post.")
-        except FileNotFoundError:
-            raise FileNotFoundError("File {0} not found".format(from_file))
+        from_file = join(base["content"], "images", self.meta["image"])
+        to_file = join(base["output"], base["path"], self.meta["image"])
+        self._copy(from_file, to_file)
+        self._resize_image(base, to_file)
 
     def _resize_image(self, base: dict, to_file: str) -> None:
         """
@@ -158,17 +160,21 @@ class ImagePost(Post):
             base: base variables
             to_file: file to resize
         """
-        img = Image.open(to_file)
+        try:
+            img = Image.open(to_file)
+        except FileNotFoundError:
+            raise FileNotFoundError("File {0} not found".format(to_file))
+
         width, height = img.size
         small_height = base["small_image_height"]
         small_width = small_height * width // height
         img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
 
-        path, file_id = os.path.split(to_file)
+        path, file_id = split(to_file)
         im_name_split = file_id.split(".")
         small_name = im_name_split[0] + "_small." + im_name_split[1]
 
-        img.save(os.path.join(path, im_name_split[0] + "_small." + im_name_split[1]))
+        img.save(join(path, im_name_split[0] + "_small." + im_name_split[1]))
         self.meta["small_image"] = small_name
 
 
@@ -214,11 +220,10 @@ class DataPost(Post):
             raise KeyError("No data in post.")
 
         for data in post_data:
-            data_path = os.path.join(base["content"], "data", data)
-            if os.path.isfile(data_path):
-                self._copy(data_path, os.path.join(base["output"], base["path"], data))
-            else:
-                copy_tree(data_path, os.path.join(base["output"], base["path"]))
+            from_path = join(base["content"], "data", data)
+            to_path = join(base["output"], base["path"])
+            to_path = join(to_path, data) if isfile(from_path) else to_path
+            self._copy(from_path, to_path)
 
 
 class Page(Item):
@@ -300,9 +305,9 @@ class MySGEN:
 
         site_path = self.base["site_path"]
         template_path = self.base["template_path"]
-        self.base["content"] = os.path.join(site_path, self.base["content"])
-        self.base["output"] = os.path.join(site_path, self.base["output"])
-        self.base["templates"] = os.path.join(template_path, self.base["templates"])
+        self.base["content"] = join(site_path, self.base["content"])
+        self.base["output"] = join(site_path, self.base["output"])
+        self.base["templates"] = join(template_path, self.base["templates"])
         self.base["tags"] = []
         self.base["categories"] = []
 
@@ -316,8 +321,8 @@ class MySGEN:
             lstrip_blocks=True,
         )
 
-        for file in os.listdir(self.base["templates"]):
-            if os.path.isfile(os.path.join(self.base["templates"], file)):
+        for file in listdir(self.base["templates"]):
+            if isfile(join(self.base["templates"], file)):
                 page_type = file.split(".")[0]
                 self.template[page_type] = env.get_template(file)
 
@@ -354,9 +359,7 @@ class MySGEN:
             )
 
         try:
-            all_item_paths = glob.glob(
-                os.path.join(self.base["content"], item_type, "*.md")
-            )
+            all_item_paths = glob.glob(join(self.base["content"], item_type, "*.md"))
         except FileNotFoundError:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)

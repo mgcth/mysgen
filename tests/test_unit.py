@@ -254,23 +254,35 @@ class TestUnitPost:
         assert post.meta == {}
         assert post.content == ""
 
+    @pytest.mark.parametrize(
+        "meta, content, base, template",
+        [
+            (
+                {"path": "path"},
+                "content",
+                {"home": "home", "post_url": "post_url"},
+                MagicMock(),
+            ),
+        ],
+    )
     @patch("mysgen.mysgen.Item.process")
     @patch("mysgen.mysgen.Item._patch_content")
-    def test_unit_post_process(self, mock_item_patch_content, mock_item_process):
+    def test_unit_post_process(
+        self, mock_item_patch_content, mock_item_process, meta, content, base, template
+    ):
         """
         Unit test of Post process method.
         """
-        input1 = MagicMock()
-        input2 = MagicMock()
-        mock_base = MagicMock()
-        mock_template = MagicMock()
-        post = Post(input1, input2)
-        post.process(mock_base, mock_template)
+        post = Post(meta, content)
+        post.process(base, template)
 
-        assert post.meta == input1
-        assert post.content == input2
+        assert base["meta"] == meta
+        assert base["article_content"] == content
+        assert base["path"] == meta["path"]
+        assert base["page"] == base["home"]
+        assert base["page_name"] == "index"
         mock_item_patch_content.assert_called_once()
-        mock_item_process.assert_called_once_with(mock_base, mock_template["article"])
+        mock_item_process.assert_called_once_with(base, template["article"])
 
     @patch("mysgen.mysgen.shutil.copyfile")
     def test_unit_post_copy(self, mock_shutil_copyfile):
@@ -281,3 +293,120 @@ class TestUnitPost:
         post._copy("from", "to")
 
         mock_shutil_copyfile.assert_called_once_with("from", "to")
+
+
+class TestUnitImagePost:
+    """
+    Unit tests of ImagePost class.
+    """
+
+    def test_unit_imagepost_init(self):
+        """
+        Unit test of ImagePost init method.
+        """
+        post = ImagePost({}, "")
+
+        assert post.meta == {}
+        assert post.content == ""
+
+    @patch("mysgen.mysgen.ImagePost._copy_image")
+    @patch("mysgen.mysgen.Post.process")
+    def test_unit_imagepost_process(self, mock_item_process, mock_imagepost_copy_image):
+        """
+        Unit test of ImagePost process method.
+        """
+        mock_base = MagicMock()
+        mock_template = MagicMock()
+        post = ImagePost(MagicMock(), MagicMock())
+        post.process(mock_base, mock_template)
+
+        mock_item_process.assert_called_once_with(mock_base, mock_template)
+        mock_imagepost_copy_image.assert_called_once_with(mock_base)
+
+    @pytest.mark.parametrize(
+        "meta, base, from_file, to_file",
+        [
+            (
+                {"image": "image_1"},
+                {"content": "content", "output": "output", "path": "path"},
+                "content/images/image_1",
+                "output/path/image_1",
+            )
+        ],
+    )
+    @patch("mysgen.mysgen.ImagePost._resize_image")
+    @patch("mysgen.mysgen.Post._copy")
+    def test_unit_imagepost_copy_image(
+        self, mock_copy, mock_resize_image, meta, base, from_file, to_file
+    ):
+        """
+        Unit test of ImagePost _copy_image method.
+        """
+        post = ImagePost(meta, MagicMock())
+        post._copy_image(base)
+
+        mock_copy.assert_called_once_with(from_file, to_file)
+        mock_resize_image.assert_called_once_with(base, to_file)
+
+    def test_unit_imagepost_resize_image(self):
+        """
+        Unit test of ImagePost _resize_image method.
+        """
+        pass
+
+
+class TestUnitDataPost:
+    """
+    Unit tests of DataPost class.
+    """
+
+    def test_unit_datapost_init(self):
+        """
+        Unit test of DataPost init method.
+        """
+        post = DataPost({}, "")
+
+        assert post.meta == {}
+        assert post.content == ""
+
+    @patch("mysgen.mysgen.DataPost._copy_data")
+    @patch("mysgen.mysgen.Post.process")
+    def test_unit_datapost_process(self, mock_item_process, mock_datapost_copy_data):
+        """
+        Unit test of DataPost process method.
+        """
+        mock_base = MagicMock()
+        mock_template = MagicMock()
+        post = DataPost(MagicMock(), MagicMock())
+        post.process(mock_base, mock_template)
+
+        mock_item_process.assert_called_once_with(mock_base, mock_template)
+        mock_datapost_copy_data.assert_called_once_with(mock_base)
+
+    @pytest.mark.parametrize(
+        "meta, base, from_path, to_path",
+        [
+            (
+                {"data": "data_1"},
+                {"content": "content", "output": "output", "path": "path"},
+                "content/data/data_1",
+                "output/path",
+            ),
+            ({}, None, None, None),
+        ],
+    )
+    @patch("mysgen.mysgen.Post._copy")
+    def test_unit_datapost_copy_data(
+        self, mock_shutil_copy, meta, base, from_path, to_path
+    ):
+        """
+        Unit test of DataPost _copy_data method.
+        """
+        post = DataPost(meta, MagicMock())
+        if "data" not in meta:
+            with pytest.raises(KeyError):
+                post._copy_data(base)
+        else:
+            post._copy_data(base)
+
+            mock_shutil_copy.assert_called_once_with(from_path, to_path)
