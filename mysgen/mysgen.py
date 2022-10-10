@@ -25,17 +25,22 @@ class Item:
     Item base class.
     """
 
-    def __init__(self, meta: dict, content: str) -> None:
+    def __init__(
+        self, meta: dict, content: str, src_path: str, build_path: str
+    ) -> None:
         """
         Initialise item object.
 
         Args:
             meta: meta dictionary
             content: content string
-            settings: settings dictionary
+            src_path: src path of item
+            build_path: build path of item
         """
         self.meta = meta
         self.content = content
+        self.src_path = src_path
+        self.build_path = build_path
 
     def process(self, base: dict, template: Environment) -> None:
         """
@@ -46,9 +51,11 @@ class Item:
             template: selected template
         """
         item_html = template.render(base)
-        path = join(base["output"], base["path"])
+        path = join(self.build_path, self.meta["path"])
+        html_file = join(path, INDEX)
+
         makedirs(path, exist_ok=True)
-        with open(join(path, INDEX), "w") as file:
+        with open(html_file, "w") as file:
             file.write(item_html)
 
     def _patch_content(self, pattern: str, patch: str) -> None:
@@ -67,15 +74,19 @@ class Post(Item):
     Post class.
     """
 
-    def __init__(self, meta: defaultdict, content: str) -> None:
+    def __init__(
+        self, meta: defaultdict, content: str, src_path: str, build_path: str
+    ) -> None:
         """
         Initialise post object.
 
         Args:
             meta: meta dictionary
             content: content string
+            src_path: src path of item
+            build_path: build path of item
         """
-        super().__init__(meta, content)
+        super().__init__(meta, content, src_path, build_path)
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -87,28 +98,51 @@ class Post(Item):
         """
         base["meta"] = self.meta
         base["article_content"] = self.content
-        base["path"] = self.meta["path"]
         base["page"] = base["home"]
         base["page_name"] = INDEX.split(".")[0]
 
         self._patch_content(base["post_url"], join("/", self.meta["path"]))
         super().process(base, template["article"])
 
-    def _copy(self, from_path, to_path) -> None:
+    def _copy(self, item_type) -> None:
         """
         Copy files from to.
 
         Args:
-            from_path: from file path
-            to_path: to file path
+            item_type: item type to copy
+        """
+        from_path = join(self.src_path, item_type, self.meta["path"])
+        to_path = join(self.build_path, self.meta["path"], item_type)
+
+        try:
+            copy_tree(from_path, to_path)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                "File {from_path} not found.".format(from_path=from_path)
+            )
+
+    def _extract(self, item_type: str):
+        """
+        Extract data from meta and return from and to paths.
+
+        Args:
+            item_type: item to search for data
+
+        Returns:
+            list of data
+
+        Raises:
+            KeyError
         """
         try:
-            if isfile(from_path):
-                shutil.copyfile(from_path, to_path)
-            else:
-                copy_tree(from_path, to_path)
+            post_data = [x.strip() for x in self.meta[item_type].split(",")]
         except KeyError:
-            raise KeyError("File {from_path} not found.".format(from_path=from_path))
+            raise KeyError("No data in item.")
+
+        for data in post_data:
+            from_file = join(self.src_path, item_type, data)
+            to_file = join(self.build_path, self.meta["path"], data)
+            yield from_file, to_file
 
 
 class ImagePost(Post):
@@ -116,15 +150,19 @@ class ImagePost(Post):
     Image post.
     """
 
-    def __init__(self, meta: defaultdict, content: str) -> None:
+    def __init__(
+        self, meta: defaultdict, content: str, src_path: str, build_path: str
+    ) -> None:
         """
         Initialise post object.
 
         Args:
             meta: meta dictionary
             content: content string
+            src_path: src path of item
+            build_path: build path of item
         """
-        super().__init__(meta, content)
+        super().__init__(meta, content, src_path, build_path)
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -135,47 +173,37 @@ class ImagePost(Post):
             template: available templates dictionary
         """
         super().process(base, template)
-        self._copy_image(base)
+        self.meta["small_image_height"] = base["small_image_height"]
+        self._copy_image()
+        self._resize_image()
 
-    def _copy_image(self, base: dict) -> None:
+    def _copy_image(self) -> None:
         """
-        Copy post's image to output from contents.
+        Copy post images to output from contents.
+        """
+        self._copy("image")
+
+    def _resize_image(self, to_file: str) -> None:
+        """
+        Resize post images for photo gallery.
 
         Args:
-            base: base variables
-
-        Raises:
-            FileNotFoundError
-        """
-        from_file = join(base["content"], "images", self.meta["image"])
-        to_file = join(base["output"], base["path"], self.meta["image"])
-        self._copy(from_file, to_file)
-        self._resize_image(base, to_file)
-
-    def _resize_image(self, base: dict, to_file: str) -> None:
-        """
-        Resize post's image for photo gallery.
-
-        Args:
-            base: base variables
             to_file: file to resize
         """
-        try:
-            img = Image.open(to_file)
-        except FileNotFoundError:
-            raise FileNotFoundError("File {0} not found".format(to_file))
+        for from_path, to_path in self._extract("image"):
+            self._resize_image(to_path)
+            with Image.open(to_file) as img:
+                width, height = img.size
+                small_height = self.meta["small_image_height"]
+                small_width = small_height * width // height
+                img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
 
-        width, height = img.size
-        small_height = base["small_image_height"]
-        small_width = small_height * width // height
-        img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
+                path, file_id = split(to_file)
+                im_name_split = file_id.split(".")
+                small_name = im_name_split[0] + "_small." + im_name_split[1]
 
-        path, file_id = split(to_file)
-        im_name_split = file_id.split(".")
-        small_name = im_name_split[0] + "_small." + im_name_split[1]
-
-        img.save(join(path, im_name_split[0] + "_small." + im_name_split[1]))
-        self.meta["small_image"] = small_name
+                img.save(join(path, im_name_split[0] + "_small." + im_name_split[1]))
+                self.meta["small_image"] = small_name
 
 
 class DataPost(Post):
@@ -183,15 +211,19 @@ class DataPost(Post):
     Data post.
     """
 
-    def __init__(self, meta: defaultdict, content: str) -> None:
+    def __init__(
+        self, meta: defaultdict, content: str, src_path: str, build_path: str
+    ) -> None:
         """
         Initialise post object.
 
         Args:
             meta: meta dictionary
             content: content string
+            src_path: src path of item
+            build_path: build path of item
         """
-        super().__init__(meta, content)
+        super().__init__(meta, content, src_path, build_path)
 
     def process(self, base: dict, template: dict) -> None:
         """
@@ -202,27 +234,13 @@ class DataPost(Post):
             template: available templates dictionary
         """
         super().process(base, template)
-        self._copy_data(base)
+        self.copy_data()
 
-    def _copy_data(self, base: dict) -> None:
+    def copy_data(self) -> None:
         """
         Copy post's data to output from contents.
-
-        Args:
-            base: base variables
-
-        Raises:
-            KeyError
         """
-        try:
-            post_data = self.meta["data"].split(", ")
-        except KeyError:
-            raise KeyError("No data in post.")
-
-        for data in post_data:
-            from_path = join(base["content"], "data", data)
-            to_path = join(base["output"], base["path"])
-            to_path = join(to_path, data) if isfile(from_path) else to_path
+        for from_path, to_path in self._extract("data"):
             self._copy(from_path, to_path)
 
 
@@ -231,16 +249,19 @@ class Page(Item):
     Page class.
     """
 
-    def __init__(self, meta: defaultdict, content: str) -> None:
+    def __init__(
+        self, meta: defaultdict, content: str, src_path: str, build_path: str
+    ) -> None:
         """
         Initialise page object.
 
         Args:
             meta: meta dictionary
             content: content string
+            src_path: src path of item
+            build_path: build path of item
         """
-        self.meta = meta
-        self.content = content
+        super().__init__(meta, content, src_path, build_path)
 
     def process(
         self, base: dict, template: dict, pages: dict = {}, posts_metadata: dict = {}
@@ -257,8 +278,8 @@ class Page(Item):
         page_path = self.meta["path"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
         base["path"] = page_path
-        base["pages"] = pages
         base["page_name"] = self.meta["type"]
+        base["pages"] = pages
         base["articles"] = posts_metadata
 
         self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
