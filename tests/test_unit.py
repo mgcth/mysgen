@@ -5,7 +5,7 @@ import os
 import json
 import pytest
 from datetime import datetime
-from mysgen.mysgen import MySGEN, Post, ImagePost, DataPost, Page
+from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page
 from collections import OrderedDict
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -199,3 +199,85 @@ class TestUnitMySGEN:
 
         assert meta == mock_format_metadata.return_value
         assert content == mock_markdown.convert.return_value
+
+
+class TestUnitItem:
+    """
+    Unit tests of Item class.
+    """
+
+    def test_unit_item_init(self):
+        """
+        Unit test of Item init method.
+        """
+        item = Item({}, "")
+
+        assert item.meta == {}
+        assert item.content == ""
+
+    @patch("builtins.open", mock_open(read_data=None))
+    @patch("mysgen.mysgen.os.makedirs")
+    @patch("mysgen.mysgen.os.path.join")
+    def test_unit_item_process(self, mock_os_path_join, mock_os_makedirs):
+        """
+        Unit test of Item process method.
+        """
+        mock_base = MagicMock()
+        mock_template = MagicMock()
+        item = Item(MagicMock(), MagicMock())
+        item.process(mock_base, mock_template)
+
+        assert mock_os_path_join.call_count == 2
+        mock_os_makedirs.assert_called_once()
+
+    def test_unit_item_patch_content(self):
+        """
+        Unit test of Item _patch_content method.
+        """
+        item = Item({}, "patch_me")
+        item._patch_content("patch", "PATCHED")
+
+        assert item.content == "PATCHED_me"
+
+
+class TestUnitPost:
+    """
+    Unit tests of Post class.
+    """
+
+    def test_unit_post_init(self):
+        """
+        Unit test of Post init method.
+        """
+        post = Post({}, "")
+
+        assert post.meta == {}
+        assert post.content == ""
+
+    @patch("mysgen.mysgen.Item.process")
+    @patch("mysgen.mysgen.Item._patch_content")
+    def test_unit_post_process(self, mock_item_patch_content, mock_item_process):
+        """
+        Unit test of Post process method.
+        """
+        input1 = MagicMock()
+        input2 = MagicMock()
+        mock_base = MagicMock()
+        mock_template = MagicMock()
+        post = Post(input1, input2)
+        post.process(mock_base, mock_template)
+
+        assert post.meta == input1
+        assert post.content == input2
+        mock_item_patch_content.assert_called_once()
+        mock_item_process.assert_called_once_with(mock_base, mock_template["article"])
+
+    @patch("mysgen.mysgen.shutil.copyfile")
+    def test_unit_post_copy(self, mock_shutil_copyfile):
+        """
+        Unit test of Post _copy method.
+        """
+        post = Post({}, "")
+        post._copy("from", "to")
+
+        mock_shutil_copyfile.assert_called_once_with("from", "to")
