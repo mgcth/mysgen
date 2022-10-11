@@ -159,19 +159,18 @@ class ImagePost(Post):
         """
         Resize post images for photo gallery.
         """
+        self.meta["small_image"] = []
         for to_image in glob.glob(join(self.to_path)):
             with Image.open(to_image) as img:
-                width, height = img.size
-                small_height = self.meta["small_image_height"]
-                small_width = small_height * width // height
-                img = img.resize((small_width, small_height), Image.Resampling.LANCZOS)
+                img.thumbnail(
+                    self.meta["small_image_height"], resample=Image.Resampling.LANCZOS
+                )
 
                 path, file_id = split(to_image)
                 im_name_split = file_id.split(".")
-                small_name = im_name_split[0] + "_small." + im_name_split[1]
-
-                img.save(join(path, im_name_split[0] + "_small." + im_name_split[1]))
-                self.meta["small_image"] = small_name
+                thumbnail = im_name_split[0] + "_small." + im_name_split[1]
+                self.meta["small_image"].append(thumbnail)
+                img.save(join(path, thumbnail))
 
 
 class DataPost(Post):

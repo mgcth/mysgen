@@ -5,7 +5,7 @@ import os
 import json
 import pytest
 from datetime import datetime
-from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page
+from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page, build
 from collections import OrderedDict
 from unittest.mock import patch, mock_open, MagicMock
 
@@ -24,6 +24,18 @@ with open(this_dir + "/fixtures/content/posts/post.md", "r") as file:
 
 with open(this_dir + "/fixtures/content/pages/home.md", "r") as file:
     test_page = file.read()
+
+
+@patch("mysgen.mysgen.__name__", "__main__")
+@patch("mysgen.mysgen.MySGEN")
+def test_unit_build(mock_mysgen):
+    """
+    Test init build function.
+    """
+    build()
+
+    mock_mysgen.assert_called_once()
+    mock_mysgen.return_value.build.assert_called_once()
 
 
 class TestUnitMySGEN:
@@ -335,11 +347,45 @@ class TestUnitImagePost:
         mock_item_process.assert_called_once_with(mock_base, mock_template)
         mock_post_copy.assert_called_once()
 
-    def test_unit_imagepost_resize_image(self):
+    @pytest.mark.parametrize(
+        "path, small_image_height, glob_return, split_return, small_image",
+        [
+            (
+                "posts/path",
+                300,
+                ["path/image1.jpg", "path/image2.jpg"],
+                [("path", "image1.jpg"), ("path", "image2.jpg")],
+                ["image1_small.jpg", "image2_small.jpg"],
+            )
+        ],
+    )
+    @patch("mysgen.mysgen.Image.open")
+    @patch("mysgen.mysgen.glob.glob")
+    @patch("mysgen.mysgen.join")
+    def test_unit_imagepost_resize_image(
+        self,
+        mock_join,
+        mock_glob,
+        mock_image,
+        glob_return,
+        path,
+        small_image_height,
+        split_return,
+        small_image,
+    ):
         """
         Unit test of ImagePost _resize_image method.
         """
-        pass
+        meta = {"path": path, "small_image_height": small_image_height}
+        post = ImagePost(meta, MagicMock(), MagicMock(), MagicMock())
+        mock_glob.return_value = (g for g in glob_return)
+        post._resize_image()
+
+        mock_glob.assert_called_once()
+        assert mock_join.call_count == 5
+        assert mock_image.return_value.__enter__.return_value.thumbnail.call_count == 2
+        assert post.meta["small_image"] == small_image
+        assert mock_image.return_value.__enter__.return_value.save.call_count == 2
 
 
 class TestUnitDataPost:
