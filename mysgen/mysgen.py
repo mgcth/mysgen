@@ -10,6 +10,7 @@ from datetime import datetime
 from os import listdir, makedirs
 from os.path import join, isfile, split
 from distutils.dir_util import copy_tree
+from distutils.errors import DistutilsFileError
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader
 
@@ -114,8 +115,8 @@ class Post(Item):
         """
         try:
             copy_tree(self.from_path, self.to_path)
-        except FileNotFoundError:
-            raise FileNotFoundError(
+        except DistutilsFileError:
+            raise DistutilsFileError(
                 "File {from_path} not found.".format(from_path=self.from_path)
             )
 
@@ -226,24 +227,18 @@ class Page(Item):
         """
         super().__init__(meta, content, src_path, build_path)
 
-    def process(
-        self, base: dict, template: dict, pages: dict = {}, posts_metadata: dict = {}
-    ) -> None:
+    def process(self, base: dict, template: dict) -> None:
         """
         Process all pages.
 
         Args:
             base: base variables, copy
             template: available templates dictionary
-            pages: all pages
-            posts_metadata: all published posts metadata
         """
         page_path = self.meta["path"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
         base["path"] = page_path
         base["page_name"] = self.meta["type"]
-        base["pages"] = pages
-        base["articles"] = posts_metadata
 
         self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
         super().process(base, template[self.meta["type"]])
@@ -339,9 +334,8 @@ class MySGEN:
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        try:
-            all_item_paths = glob.glob(join(self.base["content"], item_type, "*.md"))
-        except FileNotFoundError:
+        all_item_paths = glob.glob(join(self.base["content"], item_type, "*.md"))
+        if not all_item_paths:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)
             )
@@ -356,9 +350,9 @@ class MySGEN:
 
             if item_type == "pages":
                 self.pages[item] = Page(meta, content, src_path, build_path)
-            elif meta["image"]:
+            elif "image" in meta:
                 self.posts[item] = ImagePost(meta, content, src_path, build_path)
-            elif meta["data"]:
+            elif "data" in meta:
                 self.posts[item] = DataPost(meta, content, src_path, build_path)
             else:
                 self.posts[item] = Post(meta, content, src_path, build_path)
@@ -370,36 +364,34 @@ class MySGEN:
         Args:
             item_type: type of item to process
 
+        Returns:
+            None
+
         Raises:
             NotImplementedError
         """
+        base = self.base.copy()
+
         if item_type == "posts":
             data = self.posts
         elif item_type == "pages":
             data = self.pages
+            posts_metadata = [
+                p.meta for _, p in self.posts.items() if p.meta["status"] == "published"
+            ]
+            posts_metadata = sorted(
+                posts_metadata, key=lambda x: x["date"], reverse=True
+            )
+            base["pages"] = self.pages
+            base["articles"] = posts_metadata
         else:
             raise NotImplementedError(
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        posts_metadata = [
-            post.meta
-            for _, post in self.posts.items()
-            if post.meta["status"] == "published"
-        ]
-        posts_metadata = sorted(posts_metadata, key=lambda x: x["date"], reverse=True)
-
         for _, item_object in data.items():
-            if item_object.meta["status"] != "published":
-                continue
-
-            if item_type == "posts":
-                item_object.process(self.base.copy(), self.template)
-
-            if item_type == "pages":
-                item_object.process(
-                    self.base.copy(), self.template, self.pages, posts_metadata
-                )
+            if item_object.meta["status"] == "published":
+                item_object.process(base, self.template)
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:
         """

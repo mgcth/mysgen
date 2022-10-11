@@ -5,10 +5,10 @@ import os
 import json
 import pytest
 from datetime import datetime
-from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page, build
 from collections import OrderedDict
+from distutils.errors import DistutilsFileError
 from unittest.mock import patch, mock_open, MagicMock
-
+from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page, build
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -152,25 +152,105 @@ class TestUnitMySGEN:
 
         assert mysgen.markdown == mock_markdown.return_value
 
-    @pytest.mark.parametrize("item_type", [("posts"), ("pages"), ("unknown")])
-    def test_unit_find_and_parse(self, item_type):
+    @pytest.mark.parametrize(
+        "item_type, files, meta",
+        [
+            ("unknown", [], {}),
+            ("pages", [], {}),
+            ("posts", [], {}),
+            ("pages", ["file"], {}),
+            ("posts", ["file"], {"image": "image"}),
+            ("posts", ["file"], {"data": "data"}),
+            ("posts", ["file"], {}),
+        ],
+    )
+    @patch("mysgen.mysgen.DataPost")
+    @patch("mysgen.mysgen.ImagePost")
+    @patch("mysgen.mysgen.Post")
+    @patch("mysgen.mysgen.Page")
+    @patch("mysgen.mysgen.MySGEN._parse")
+    @patch("mysgen.mysgen.glob.glob")
+    def test_unit_find_and_parse(
+        self,
+        mock_glob,
+        mock_parse,
+        mock_page,
+        mock_post,
+        mock_imagepost,
+        mock_datapost,
+        item_type,
+        files,
+        meta,
+    ):
         """
         Test MySGEN find_and_parse method.
         """
         mysgen = MySGEN(CONFIG_FILE)
+        mysgen.base = {"site_path": "", "content": "content", "output": "output"}
+        mock_glob.return_value = files
         if item_type != "posts" and item_type != "pages":
             with pytest.raises(NotImplementedError):
                 mysgen.find_and_parse(item_type)
 
-    @pytest.mark.parametrize("item_type", [("posts"), ("pages"), ("unknown")])
-    def test_unit_process(self, item_type):
+        elif not files:
+            with pytest.raises(FileNotFoundError):
+                mysgen.find_and_parse(item_type)
+            mock_glob.assert_called_once()
+
+        else:
+            mock_parse.return_value = (meta, None)
+            mysgen.find_and_parse(item_type)
+
+            if item_type == "pages":
+                mock_page.assert_called_once()
+            elif "image" in meta:
+                mock_imagepost.assert_called_once()
+            elif "data" in meta:
+                mock_datapost.assert_called_once()
+            else:
+                mock_post.assert_called_once()
+
+            mock_glob.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "item_type, data",
+        [
+            ("unknown", {}),
+            ("pages", {"page": Page({"status": ""}, "", "", "")}),
+            ("pages", {"page": Page({"status": "published"}, "", "", "")}),
+            ("posts", {"post": Post({"status": ""}, "", "", "")}),
+            ("posts", {"post": Post({"status": "published"}, "", "", "")}),
+        ],
+    )
+    @patch("mysgen.mysgen.sorted")
+    def test_unit_process(self, mock_sorted, item_type, data):
         """
         Test the parse posts method.
         """
+        mock_sorted.return_value = "posts_metadata"
         mysgen = MySGEN(CONFIG_FILE)
+        mysgen.pages = "pages"
+        mysgen.template = "template"
         if item_type != "posts" and item_type != "pages":
             with pytest.raises(NotImplementedError):
                 mysgen.process(item_type)
+            return
+
+        if item_type == "posts":
+            mysgen.posts = data
+            data["post"].process = MagicMock()
+            mysgen.process(item_type)
+            if data["post"].meta["status"] == "published":
+                data["post"].process.assert_called_once_with({}, "template")
+        else:
+            mysgen.pages = data
+            data["page"].process = MagicMock()
+            mysgen.process(item_type)
+            if data["page"].meta["status"] == "published":
+                data["page"].process.assert_called_once_with(
+                    {"pages": data, "articles": "posts_metadata"}, "template"
+                )
+            mock_sorted.assert_called_once()
 
     @patch.object(os, "listdir")
     @patch.object(MySGEN, "_parse")
@@ -313,6 +393,16 @@ class TestUnitPost:
 
         mock_copy_tree.assert_called_once_with("from", "to")
 
+    def test_unit_post_copy_raises(self):
+        """
+        Unit test of Post _copy method when raises exception.
+        """
+        post = Post({}, "content", "src", "build")
+        post.from_path = "/error/"
+        post.to_path = "to"
+        with pytest.raises(DistutilsFileError):
+            post.copy()
+
 
 class TestUnitImagePost:
     """
@@ -453,12 +543,10 @@ class TestUnitPage:
         mock_base = {"home": "home", "build_date": "build_date"}
         mock_template = MagicMock()
         page = Page(mock_meta, MagicMock(), MagicMock(), MagicMock())
-        page.process(mock_base, mock_template, "pages", "posts")
+        page.process(mock_base, mock_template)
 
         assert mock_base["path"] == expected
         assert mock_base["page_name"] == mock_meta["type"]
-        assert mock_base["pages"] == "pages"
-        assert mock_base["articles"] == "posts"
         mock_page_patch_content.assert_called_once_with(
             mock_base["build_date"], datetime.now().strftime("%Y-%m-%d")
         )
