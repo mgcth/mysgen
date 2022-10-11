@@ -161,11 +161,16 @@ class ImagePost(Post):
         Resize post images for photo gallery.
         """
         self.meta["small_image"] = []
-        for to_image in glob.glob(join(self.to_path)):
+        for to_image in glob.glob(join(self.to_path, "*.*")):
+            if not isfile(to_image):
+                continue
+
             with Image.open(to_image) as img:
-                img.thumbnail(
-                    self.meta["small_image_height"], resample=Image.Resampling.LANCZOS
-                )
+                if max(img.size) > self.meta["small_image_height"]:
+                    img.thumbnail(
+                        self.meta["small_image_height"],
+                        resample=Image.Resampling.LANCZOS,
+                    )
 
                 path, file_id = split(to_image)
                 im_name_split = file_id.split(".")
@@ -237,6 +242,7 @@ class Page(Item):
         """
         page_path = self.meta["path"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
+        self.meta["path"] = page_path
         base["path"] = page_path
         base["page_name"] = self.meta["type"]
 

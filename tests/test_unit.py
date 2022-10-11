@@ -438,17 +438,18 @@ class TestUnitImagePost:
         mock_post_copy.assert_called_once()
 
     @pytest.mark.parametrize(
-        "path, small_image_height, glob_return, split_return, small_image",
+        "path, image_size, small_image_height, glob_return, small_image",
         [
             (
                 "posts/path",
+                400,
                 300,
                 ["path/image1.jpg", "path/image2.jpg"],
-                [("path", "image1.jpg"), ("path", "image2.jpg")],
                 ["image1_small.jpg", "image2_small.jpg"],
             )
         ],
     )
+    @patch("mysgen.mysgen.isfile")
     @patch("mysgen.mysgen.Image.open")
     @patch("mysgen.mysgen.glob.glob")
     @patch("mysgen.mysgen.join")
@@ -457,10 +458,11 @@ class TestUnitImagePost:
         mock_join,
         mock_glob,
         mock_image,
+        mock_isfile,
         glob_return,
         path,
+        image_size,
         small_image_height,
-        split_return,
         small_image,
     ):
         """
@@ -469,6 +471,8 @@ class TestUnitImagePost:
         meta = {"path": path, "small_image_height": small_image_height}
         post = ImagePost(meta, MagicMock(), MagicMock(), MagicMock())
         mock_glob.return_value = (g for g in glob_return)
+        mock_isfile.return_value = True
+        mock_image.return_value.__enter__.return_value.size = (image_size, image_size)
         post._resize_image()
 
         mock_glob.assert_called_once()

@@ -22,9 +22,13 @@ def test_integration_mysgen():
         os.path.join(path, name)
         for path, _, files in os.walk(known_output)
         for name in files
+        if name.split(".")[-1] == "html"
     ]
     test_files = [
-        os.path.join(path, name) for path, _, files in os.walk(output) for name in files
+        os.path.join(path, name)
+        for path, _, files in os.walk(output)
+        for name in files
+        if name.split(".")[-1] == "html"
     ]
 
     for true_f, test_f in zip(known_files, test_files):
