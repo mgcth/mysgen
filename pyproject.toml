@@ -21,12 +21,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 dev = [
-    "pytest ~= 7.1",
-    "coverage ~= 6.5",
-    "pytest-cov ~= 4.0",
+    "mysgen[test]",
     "black ~= 22.8",
     "flake8 ~= 5.0",
     "pre-commit ~= 2.20",
 ]
-test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
