@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.7"
 dependencies = [
     "Markdown ~= 3.3",
-    "Pillow ~= 9.0",
+    "Pillow ~= 9.1",
     "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
