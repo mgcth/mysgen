@@ -442,8 +442,8 @@ class TestUnitImagePost:
         [
             (
                 "posts/path",
-                400,
-                300,
+                (400, 400),
+                [300, 300],
                 ["path/image1.jpg", "path/image2.jpg"],
                 ["image1_small.jpg", "image2_small.jpg"],
             )
@@ -472,7 +472,7 @@ class TestUnitImagePost:
         post = ImagePost(meta, MagicMock(), MagicMock(), MagicMock())
         mock_glob.return_value = (g for g in glob_return)
         mock_isfile.return_value = True
-        mock_image.return_value.__enter__.return_value.size = (image_size, image_size)
+        mock_image.return_value.__enter__.return_value.size = image_size
         post._resize_image()
 
         mock_glob.assert_called_once()
