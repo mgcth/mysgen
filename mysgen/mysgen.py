@@ -151,10 +151,10 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        super().process(base, template)
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.copy()
         self._resize_image()
+        super().process(base, template)
 
     def _resize_image(self) -> None:
         """
@@ -209,8 +209,8 @@ class DataPost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        super().process(base, template)
         self.copy()
+        super().process(base, template)
 
 
 class Page(Item):
