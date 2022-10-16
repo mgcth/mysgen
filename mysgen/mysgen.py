@@ -166,7 +166,7 @@ class ImagePost(Post):
                 continue
 
             with Image.open(to_image) as img:
-                if max(img.size) > self.meta["small_image_height"]:
+                if max(img.size) > min(self.meta["small_image_height"]):
                     img.thumbnail(
                         self.meta["small_image_height"],
                         resample=Image.Resampling.LANCZOS,
