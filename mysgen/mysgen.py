@@ -152,7 +152,7 @@ class ImagePost(Post):
             template: available templates dictionary
         """
         super().process(base, template)
-        self.meta["small_image_height"] = base["small_image_height"]
+        self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.copy()
         self._resize_image()
 
@@ -160,22 +160,22 @@ class ImagePost(Post):
         """
         Resize post images for photo gallery.
         """
-        self.meta["small_image"] = []
+        self.meta["thumbnails"] = []
         for to_image in glob.glob(join(self.to_path, "*.*")):
             if not isfile(to_image):
                 continue
 
             with Image.open(to_image) as img:
-                if max(img.size) > min(self.meta["small_image_height"]):
+                if max(img.size) > min(self.meta["thumbnail_size"]):
                     img.thumbnail(
-                        self.meta["small_image_height"],
+                        self.meta["thumbnail_size"],
                         resample=Image.Resampling.LANCZOS,
                     )
 
                 path, file_id = split(to_image)
                 im_name_split = file_id.split(".")
                 thumbnail = im_name_split[0] + "_small." + im_name_split[1]
-                self.meta["small_image"].append(thumbnail)
+                self.meta["thumbnails"].append(thumbnail)
                 img.save(join(path, thumbnail))
 
 

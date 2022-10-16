@@ -438,7 +438,7 @@ class TestUnitImagePost:
         mock_post_copy.assert_called_once()
 
     @pytest.mark.parametrize(
-        "path, image_size, small_image_height, glob_return, small_image",
+        "path, image_size, thumbnail_size, glob_return, thumbnails",
         [
             (
                 "posts/path",
@@ -462,13 +462,13 @@ class TestUnitImagePost:
         glob_return,
         path,
         image_size,
-        small_image_height,
-        small_image,
+        thumbnail_size,
+        thumbnails,
     ):
         """
         Unit test of ImagePost _resize_image method.
         """
-        meta = {"path": path, "small_image_height": small_image_height}
+        meta = {"path": path, "thumbnail_size": thumbnail_size}
         post = ImagePost(meta, MagicMock(), MagicMock(), MagicMock())
         mock_glob.return_value = (g for g in glob_return)
         mock_isfile.return_value = True
@@ -478,7 +478,7 @@ class TestUnitImagePost:
         mock_glob.assert_called_once()
         assert mock_join.call_count == 5
         assert mock_image.return_value.__enter__.return_value.thumbnail.call_count == 2
-        assert post.meta["small_image"] == small_image
+        assert post.meta["thumbnails"] == thumbnails
         assert mock_image.return_value.__enter__.return_value.save.call_count == 2
 
 
