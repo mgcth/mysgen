@@ -151,7 +151,6 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        print(base["thumbnail_size"])
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.copy()
         self._resize_image()
