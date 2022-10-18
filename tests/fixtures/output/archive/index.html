@@ -9,38 +9,79 @@
 
 <body>
     <main id="main" class="main">
-    <div id="page_home" class="page" style="display: none" >
-      <div id="content_home" class="content ">
-        <script>
-          $("#content_home").load("/ #ajax_content_home");
-        </script>
-      </div>
-    </div>
-    <div id="page_archive" class="page" >
-      <div id="content_archive" class="content ajaxHook">
-        <div id="ajax_content_archive" class="ajax_content">
-          <ol id="post-list" class="ordered-list" data-list-length="1">
-            <li class="list-style list-style-tiles" data-list="2021-01-24" data-month="01">
-              <a id="" href="/posts/post" rel="bookmark" title="Permalink to Test post">
-                <article class="hentry">
-                  <header>
-                    <h5 class="entry-date entry-title">
-                      2021-01-24 /
-                    </h5>
-                    <h5 class="entry-title">
-                      Category /
-                    </h5>
-                    <h5 class="entry-title">
-                      Test post
-                    </h5>
-                  </header>
-                </article>
-              </a>
-            </li>
-          </ol>
+        <div id="page_home" class="page" style="display: none" >
+            <div id="content_home" class="content ">
+                <script>
+                    $("#content_home").load("/ #ajax_content_home");
+                </script>
+            </div>
         </div>
-      </div>
-    </div>
+        <div id="page_archive" class="page" >
+            <div id="content_archive" class="content ajaxHook">
+                <div id="ajax_content_archive" class="ajax_content">
+                    <ol id="post-list" class="ordered-list" data-list-length="3">
+                        <li class="list-style list-style-tiles" data-list="2021-01-26" data-month="01">
+                            <a id="" href="/posts/datapost" rel="bookmark" title="Permalink to Test post">
+                                <article class="hentry">
+                                    <header>
+                                        <h5 class="entry-date entry-title">
+                                            2021-01-26 /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Category /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Test post
+                                        </h5>
+                                    </header>
+                                </article>
+                            </a>
+                        </li>
+                        <li class="list-style list-style-tiles" data-list="2021-01-25" data-month="01">
+                            <a id="" href="/posts/imagepost" rel="bookmark" title="Permalink to Test post">
+                                <article class="hentry">
+                                    <header>
+                                        <h5 class="entry-date entry-title">
+                                            2021-01-25 /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Category /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Test post
+                                        </h5>
+                                    </header>
+                                </article>
+                            </a>
+                        </li>
+                        <li class="list-style list-style-tiles" data-list="2021-01-24" data-month="01">
+                            <a id="" href="/posts/post" rel="bookmark" title="Permalink to Test post">
+                                <article class="hentry">
+                                    <header>
+                                        <h5 class="entry-date entry-title">
+                                            2021-01-24 /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Category /
+                                        </h5>
+                                        <h5 class="entry-title">
+                                            Test post
+                                        </h5>
+                                    </header>
+                                </article>
+                            </a>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        <div id="page_page" class="page" style="display: none" >
+            <div id="content_page" class="content ">
+                <script>
+                    $("#content_page").load("/page #ajax_content_page");
+                </script>
+            </div>
+        </div>
     </main>
 </body>
 

@@ -1,6 +1,30 @@
 [build-system]
-requires = [
-    "setuptools>=42",
-    "wheel"
-]
+requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "mysgen"
+version = "0.3.0"
+description = "My simple static site generator."
+license = { text = "MIT" }
+readme = "README.md"
+authors = [
+    { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
+]
+requires-python = ">=3.7"
+dependencies = [
+    "Markdown ~= 3.3",
+    "Pillow ~= 9.1",
+    "jinja2 ~= 2.11.3",
+    "python-markdown-math ~= 0.8",
+    "MarkupSafe == 1.1.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
+dev = [
+    "mysgen[test]",
+    "black ~= 22.8",
+    "flake8 ~= 5.0",
+    "pre-commit ~= 2.20",
+]

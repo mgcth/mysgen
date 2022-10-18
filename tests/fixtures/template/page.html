@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+{% if menuitems %}
+{% for title, link in menuitems.items() %}
+        <div id="page_{{title}}" class="page" {% if title !=page_name %}style="display: none" {% endif %}>
+            <div id="content_{{title}}" class="content {% if title == page_name %}ajaxHook{% endif %}">
+                {% if not (title + ".md" in pages.keys()) or title == "archive" %}
+                <script>
+                    $("#content_{{title}}").load("/{{ link }} #ajax_content_{{title}}");
+                </script>
+                {% else %}
+                <div id="ajax_content_{{ pages[title + ".md"].meta.title.lower() }}" class="ajax_content">
+                    <h1 style="display: none">{{ pages[title+".md"].meta.title.lower() }}</h1>
+                    <div class="entry-content-page hyphenate">
+                        {{ pages[title+".md"].content }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+{% endfor %}
+{% endif %}
+
+        <!-- Animate to page -->
+        <script>
+            // Which page is this
+            for (var i = 1; i <= pages.length; i++) {
+                if ("menu_{{page_name}}" == "menu_" + pages[i - 1]) {
+                whichPageActive = i;
+                }
+            }
+        </script>
+        <!-- End Animate to page -->
+{% endblock %}

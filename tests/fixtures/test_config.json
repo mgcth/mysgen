@@ -2,20 +2,24 @@
     "author": "Name",
     "sitename": "Site name",
     "siteurl": "https://address.com",
-    "template_path": "",
-    "site_path": "",
     "timezone": "Europe/Stockholm",
     "default_lang": "en-gb",
-    "content": "tests/fixtures/content",
+    "site_path": "",
+    "template_path": "",
+    "content": "tests/fixtures/content/",
     "templates": "tests/fixtures/template",
     "output": "tests/output",
-    "indexhtml": "index.html",
     "home": "home",
-    "archive": "archive",
     "menuitems": {
         "home": "",
         "archive": "archive"
     },
-    "posturl": "{{POSTURL}}",
-    "small_image_height": 300
+    "post_url": "{{post_url}}",
+    "build_date": "{{update_date}}",
+    "thumbnail_size": [300, 300],
+    "markdown_extensions": [
+        "meta",
+        "fenced_code",
+        "mdx_math"
+    ]
 }
