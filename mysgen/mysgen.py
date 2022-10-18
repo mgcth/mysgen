@@ -160,7 +160,7 @@ class ImagePost(Post):
             if not isfile(to_image):
                 continue
 
-            self.meta["image_paths"].append(to_image)
+            self.meta["image_paths"].append(split(to_image)[-1])
             self._resize_image(to_image)
 
         super().process(base, template)

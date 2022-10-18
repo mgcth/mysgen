@@ -458,7 +458,7 @@ class TestUnitImagePost:
 
         if isfile:
             assert mock_resize_image.call_count == 2
-            assert post.meta["image_paths"] == ["path/image1.jpg", "path/image2.jpg"]
+            assert post.meta["image_paths"] == ["image1.jpg", "image2.jpg"]
             mock_item_process.assert_called_once_with(mock_base, mock_template)
         else:
             assert mock_resize_image.call_count == 0
