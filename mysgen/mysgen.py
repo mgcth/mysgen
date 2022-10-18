@@ -2,6 +2,7 @@
 mysgen, a simple static site generator in Python.
 """
 from __future__ import annotations
+from ast import Str
 import json
 import glob
 import markdown
@@ -151,32 +152,39 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.copy()
-        self._resize_image()
-        super().process(base, template)
-
-    def _resize_image(self) -> None:
-        """
-        Resize post images for photo gallery.
-        """
+        self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
+        self.meta["image_paths"] = []
         for to_image in glob.glob(join(self.to_path, "*.*")):
             if not isfile(to_image):
                 continue
 
-            with Image.open(to_image) as img:
-                if max(img.size) > min(self.meta["thumbnail_size"]):
-                    img.thumbnail(
-                        self.meta["thumbnail_size"],
-                        resample=Image.Resampling.LANCZOS,
-                    )
+            self.meta["image_paths"].append(to_image)
+            self._resize_image(to_image)
 
-                path, file_id = split(to_image)
+        super().process(base, template)
+
+    def _resize_image(self, image: str) -> None:
+        """
+        Resize post images for photo gallery.
+
+        Args:
+            image: image path
+        """
+        with Image.open(image) as img:
+            if max(img.size) > min(self.meta["thumbnail_size"]):
+                img.thumbnail(
+                    self.meta["thumbnail_size"],
+                    resample=Image.Resampling.LANCZOS,
+                )
+
+                path, file_id = split(image)
                 im_name_split = file_id.split(".")
-                thumbnail = im_name_split[0] + "_small." + im_name_split[1]
-                self.meta["thumbnails"].append(thumbnail)
-                img.save(join(path, thumbnail))
+                image = im_name_split[0] + "_small." + im_name_split[1]
+                img.save(join(path, image))
+
+            self.meta["thumbnails"].append(image)
 
 
 class DataPost(Post):
@@ -240,11 +248,10 @@ class Page(Item):
             base: base variables, copy
             template: available templates dictionary
         """
+        base["page_name"] = self.meta["path"].split("/")[-1].split(".")[0]
         page_path = self.meta["path"].replace("pages/", "")
         page_path = "" if page_path == base["home"] else page_path
         self.meta["path"] = page_path
-        base["path"] = page_path
-        base["page_name"] = self.meta["type"]
 
         self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
         super().process(base, template[self.meta["type"]])

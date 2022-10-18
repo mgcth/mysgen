@@ -423,43 +423,63 @@ class TestUnitImagePost:
         assert post.from_path == "src/images/post"
         assert post.to_path == "build/posts/post/images"
 
+    @pytest.mark.parametrize("isfile", [(True), (False)])
+    @patch("mysgen.mysgen.ImagePost._resize_image")
+    @patch("mysgen.mysgen.isfile")
+    @patch("mysgen.mysgen.glob.glob")
     @patch("mysgen.mysgen.Post.copy")
     @patch("mysgen.mysgen.Post.process")
-    def test_unit_imagepost_process(self, mock_item_process, mock_post_copy):
+    def test_unit_imagepost_process(
+        self,
+        mock_item_process,
+        mock_post_copy,
+        mock_glob,
+        mock_isfile,
+        mock_resize_image,
+        isfile,
+    ):
         """
         Unit test of ImagePost process method.
         """
         mock_base = MagicMock()
         mock_template = MagicMock()
-        post = ImagePost(MagicMock(), MagicMock(), MagicMock(), MagicMock())
+        post = ImagePost(
+            {"path": "posts/post1.md"}, MagicMock(), MagicMock(), MagicMock()
+        )
+        mock_glob.return_value = (g for g in ["path/image1.jpg", "path/image2.jpg"])
+        mock_isfile.return_value = isfile
         post.process(mock_base, mock_template)
 
-        mock_item_process.assert_called_once_with(mock_base, mock_template)
+        assert post.meta["thumbnail_size"] == mock_base["thumbnail_size"]
+        assert post.meta["thumbnails"] == []
+        assert mock_isfile.call_count == 2
+        mock_glob.assert_called_once()
         mock_post_copy.assert_called_once()
 
+        if isfile:
+            assert mock_resize_image.call_count == 2
+            assert post.meta["image_paths"] == ["path/image1.jpg", "path/image2.jpg"]
+            mock_item_process.assert_called_once_with(mock_base, mock_template)
+        else:
+            assert mock_resize_image.call_count == 0
+            assert post.meta["image_paths"] == []
+            mock_item_process.call_count == 0
+
     @pytest.mark.parametrize(
-        "path, image_size, thumbnail_size, glob_return, thumbnails",
+        "path, image_size, thumbnail_size, thumbnails",
         [
             (
-                "posts/path",
+                "posts/path/images/image1.jpg",
                 (400, 400),
                 [300, 300],
-                ["path/image1.jpg", "path/image2.jpg"],
-                ["image1_small.jpg", "image2_small.jpg"],
+                "image1_small.jpg",
             )
         ],
     )
-    @patch("mysgen.mysgen.isfile")
     @patch("mysgen.mysgen.Image.open")
-    @patch("mysgen.mysgen.glob.glob")
-    @patch("mysgen.mysgen.join")
     def test_unit_imagepost_resize_image(
         self,
-        mock_join,
-        mock_glob,
         mock_image,
-        mock_isfile,
-        glob_return,
         path,
         image_size,
         thumbnail_size,
@@ -468,18 +488,12 @@ class TestUnitImagePost:
         """
         Unit test of ImagePost _resize_image method.
         """
-        meta = {"path": path, "thumbnail_size": thumbnail_size}
+        meta = {"path": path, "thumbnails": [], "thumbnail_size": thumbnail_size}
         post = ImagePost(meta, MagicMock(), MagicMock(), MagicMock())
-        mock_glob.return_value = (g for g in glob_return)
-        mock_isfile.return_value = True
         mock_image.return_value.__enter__.return_value.size = image_size
-        post._resize_image()
+        post._resize_image(path)
 
-        mock_glob.assert_called_once()
-        assert mock_join.call_count == 5
-        assert mock_image.return_value.__enter__.return_value.thumbnail.call_count == 2
-        assert post.meta["thumbnails"] == thumbnails
-        assert mock_image.return_value.__enter__.return_value.save.call_count == 2
+        assert post.meta["thumbnails"] == [thumbnails]
 
 
 class TestUnitDataPost:
@@ -533,12 +547,18 @@ class TestUnitPage:
         assert page.build_path == "build"
 
     @pytest.mark.parametrize(
-        "path, expected", [("pages/home", ""), ("pages/archive", "archive")]
+        "path, expected_path, expected_page_name",
+        [("pages/home", "", "home"), ("pages/archive", "archive", "archive")],
     )
     @patch("mysgen.mysgen.Item.process")
     @patch("mysgen.mysgen.Page._patch_content")
     def test_unit_page_process(
-        self, mock_page_patch_content, mock_item_process, path, expected
+        self,
+        mock_page_patch_content,
+        mock_item_process,
+        path,
+        expected_path,
+        expected_page_name,
     ):
         """
         Unit test of Page process method.
@@ -549,8 +569,8 @@ class TestUnitPage:
         page = Page(mock_meta, MagicMock(), MagicMock(), MagicMock())
         page.process(mock_base, mock_template)
 
-        assert mock_base["path"] == expected
-        assert mock_base["page_name"] == mock_meta["type"]
+        assert page.meta["path"] == expected_path
+        assert mock_base["page_name"] == expected_page_name
         mock_page_patch_content.assert_called_once_with(
             mock_base["build_date"], datetime.now().strftime("%Y-%m-%d")
         )
