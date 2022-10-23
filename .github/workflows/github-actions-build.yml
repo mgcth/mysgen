@@ -29,7 +29,7 @@ jobs:
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.BADGE_SECRET }}
-          gistID: 1f1ac0953268b4e5819aeb3755e55cf1
+          gistID: 4ca1def6fbfc52e194dc312f4d00329b
           filename: mysgen-badge.json
           label: Coverage
           message: ${{ env.total }}%
