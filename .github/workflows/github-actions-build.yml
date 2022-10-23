@@ -19,7 +19,7 @@ jobs:
           pip install -e ".[test]"
       - name: Test with pytest
         run: |
-          pytest --cov-report term-missing --cov=media_screen tests
+          pytest --cov-report term-missing --cov=mysgen tests
           coverage json
       - name: Export summary stats
         run: |
