@@ -1,6 +1,10 @@
-[![lint](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint-mgcth.yml)
-[![build](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build-mgcth.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build-mgcth.yml)
+[![build](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml)
+![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/1f1ac0953268b4e5819aeb3755e55cf1/raw/badge.json)
+[![lint](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml)
+![code style](https://img.shields.io/badge/code%20style-black-black)
+
 # mysgen
+
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
 The configuration file should contain the following:
