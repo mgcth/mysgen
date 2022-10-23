@@ -1,5 +1,5 @@
 [![build](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml)
-[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/4ca1def6fbfc52e194dc312f4d00329b/raw/mysgen-badge.json)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml)
+[![coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mgcth/3362178b6b392352d136d87d280e2dbe/raw/mysgen-coverage-badge.json)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml)
 [![lint](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml/badge.svg?branch=master)](https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml)
 ![code style](https://img.shields.io/badge/code%20style-black-black)
 
