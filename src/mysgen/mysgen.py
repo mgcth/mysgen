@@ -210,13 +210,6 @@ class DataPost(Post):
         self.from_path = join(self.src_path, "data", path)
         self.to_path = join(self.build_path, self.meta["path"], "data")
 
-        print()
-        print(self.meta["path"])
-        print(path)
-        print(self.src_path)
-        print(self.from_path)
-        print(self.to_path)
-
     def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
