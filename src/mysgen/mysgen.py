@@ -8,16 +8,17 @@ import glob
 import markdown
 from PIL import Image
 from datetime import datetime
-from os import listdir, makedirs
-from os.path import join, isfile, split
+from os import scandir, makedirs
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
+from os.path import join, isfile, split, relpath
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader
 
 
 # constants
 CONFIG_FILE = "config.json"
+TEMPLATES = "templates"
 INDEX = "index.html"
 
 
@@ -209,6 +210,13 @@ class DataPost(Post):
         self.from_path = join(self.src_path, "data", path)
         self.to_path = join(self.build_path, self.meta["path"], "data")
 
+        print()
+        print(self.meta["path"])
+        print(path)
+        print(self.src_path)
+        print(self.from_path)
+        print(self.to_path)
+
     def process(self, base: dict, template: dict) -> None:
         """
         Process all published posts.
@@ -295,8 +303,6 @@ class MySGEN:
         with open(self.config_file, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
-        template_path = self.base["template_path"]
-        self.base["templates"] = join(template_path, self.base["templates"])
         self.base["tags"] = []
         self.base["categories"] = []
 
@@ -304,16 +310,17 @@ class MySGEN:
         """
         Define Jinja environment.
         """
+        templates_path = join(self.base["theme_path"], TEMPLATES)
         env = Environment(
-            loader=FileSystemLoader(self.base["templates"]),
+            loader=FileSystemLoader(templates_path),
             trim_blocks=True,
             lstrip_blocks=True,
         )
 
-        for file in listdir(self.base["templates"]):
-            if isfile(join(self.base["templates"], file)):
-                page_type = file.split(".")[0]
-                self.template[page_type] = env.get_template(file)
+        for file in scandir(templates_path):
+            if file.is_file() and ".html" in file.name:
+                page_type, _ = file.name.split(".")
+                self.template[page_type] = env.get_template(file.name)
 
         self.markdown = markdown.Markdown(extensions=self.base["markdown_extensions"])
 
@@ -328,7 +335,6 @@ class MySGEN:
             if name not in names:
                 self.base["menuitems"][name] = name
 
-        # self.base["menuitems"]["home"] = ""  # hack for now
         self.base["js_menu"] = list(self.base["menuitems"].keys())
 
     def find_and_parse(self, item_type: str) -> None:
@@ -347,15 +353,13 @@ class MySGEN:
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        all_item_paths = glob.glob(join(self.base["content"], item_type, "*.md"))
+        src_path = self.base["src_path"]
+        build_path = self.base["build_path"]
+        all_item_paths = glob.glob(join(src_path, item_type, "*.md"))
         if not all_item_paths:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)
             )
-
-        site_path = self.base["site_path"]
-        src_path = join(site_path, self.base["content"])
-        build_path = join(site_path, self.base["output"])
 
         for item_path in all_item_paths:
             item = item_path.split("/")[-1]
@@ -449,7 +453,7 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
             meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
-            meta["path"] = item_path.replace(self.base["content"], "")
+            meta["path"] = relpath(item_path, self.base["src_path"])
             meta["path"] = meta["path"].replace(".md", "")
             self.markdown.reset()
 
