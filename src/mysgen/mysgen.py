@@ -101,11 +101,11 @@ class Post(Item):
             template: available templates dictionary
         """
         base["meta"] = self.meta
+        self._patch_content(base["post_url"], join("/", self.meta["path"]))
         base["article_content"] = self.content
         base["page"] = base["home"]
         base["page_name"] = INDEX.split(".")[0]
 
-        self._patch_content(base["post_url"], join("/", self.meta["path"]))
         super().process(base, template["article"])
 
     def copy(self) -> None:
