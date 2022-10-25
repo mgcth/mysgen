@@ -93,13 +93,8 @@ class TestUnitMySGEN:
         mysgen = MySGEN(CONFIG_FILE)
         mysgen.set_base_config()
 
-        assert mysgen.base["content"] == os.path.join(
-            base["site_path"], base["content"]
-        )
-        assert mysgen.base["output"] == os.path.join(base["site_path"], base["output"])
-        assert mysgen.base["templates"] == os.path.join(
-            base["template_path"], base["templates"]
-        )
+        assert mysgen.base["src_path"] == base["src_path"]
+        assert mysgen.base["build_path"] == base["build_path"]
         assert mysgen.base["tags"] == []
         assert mysgen.base["tags"] == []
 
@@ -119,9 +114,7 @@ class TestUnitMySGEN:
             "test_page2": "test_page2",
         }
 
-    @patch("mysgen.mysgen.join")
-    @patch("mysgen.mysgen.isfile")
-    @patch("mysgen.mysgen.listdir")
+    @patch("mysgen.mysgen.scandir")
     @patch("mysgen.mysgen.markdown.Markdown")
     @patch("mysgen.mysgen.Environment")
     @patch("mysgen.mysgen.FileSystemLoader")
@@ -130,9 +123,7 @@ class TestUnitMySGEN:
         mock_filesystemloader,
         mock_environment,
         mock_markdown,
-        mock_listdir,
-        mock_isfile,
-        mock_join,
+        mock_scandir,
     ):
         """
         Test MySGEN define environment method.
@@ -141,14 +132,16 @@ class TestUnitMySGEN:
             mock_filesystemloader: mock filesystem loader
             mock_environment: mock environment object
             mock_markdown: mock markdown object
+            mock_scandir: mock of scandir
         """
         mysgen = MySGEN(CONFIG_FILE)
-        mysgen.base = {"templates": "test", "markdown_extensions": ["test"]}
+        mysgen.base = {"theme_path": "test", "markdown_extensions": ["test"]}
         mysgen.define_environment()
 
         mock_filesystemloader.assert_called_once()
         mock_environment.assert_called_once()
         mock_markdown.assert_called_once()
+        mock_scandir.assert_called_once()
 
         assert mysgen.markdown == mock_markdown.return_value
 
@@ -186,7 +179,7 @@ class TestUnitMySGEN:
         Test MySGEN find_and_parse method.
         """
         mysgen = MySGEN(CONFIG_FILE)
-        mysgen.base = {"site_path": "", "content": "content", "output": "output"}
+        mysgen.base = {"src_path": "content", "build_path": "output"}
         mock_glob.return_value = files
         if item_type != "posts" and item_type != "pages":
             with pytest.raises(NotImplementedError):
