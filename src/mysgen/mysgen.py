@@ -3,6 +3,8 @@ mysgen, a simple static site generator in Python.
 """
 from __future__ import annotations
 from ast import Str
+import os
+import s3fs
 import json
 import glob
 import markdown
@@ -20,6 +22,13 @@ from jinja2 import Environment, FileSystemLoader
 CONFIG_FILE = "config.json"
 TEMPLATES = "templates"
 INDEX = "index.html"
+
+
+s3_client = s3fs.core.S3FileSystem(
+    key=os.getenv("S3_KEY"),
+    secret=os.getenv("S3_SECRET"),
+    client_kwargs={"endpoint_url": os.getenv("S3_URL")},
+)
 
 
 class Item:
@@ -108,19 +117,24 @@ class Post(Item):
 
         super().process(base, template["article"])
 
-    def copy(self) -> None:
+    def copy(self, s3) -> None:
         """
         Copy files from to.
 
         Args:
-            item_type: item type to copy
+            s3: path to s3 bucket, if used
         """
-        try:
-            copy_tree(self.from_path, self.to_path)
-        except DistutilsFileError:
-            raise DistutilsFileError(
-                "File {from_path} not found.".format(from_path=self.from_path)
-            )
+        if s3:
+            for path in s3_client.ls(join(s3, self.from_path)):
+                f = path.split("/")[-1]
+                s3_client.get(path, join(self.to_path, f))
+        else:
+            try:
+                copy_tree(self.from_path, self.to_path)
+            except DistutilsFileError:
+                raise DistutilsFileError(
+                    "File {from_path} not found.".format(from_path=self.from_path)
+                )
 
 
 class ImagePost(Post):
@@ -153,7 +167,7 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy()
+        self.copy(base["s3-bucket"])
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
@@ -218,7 +232,7 @@ class DataPost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy()
+        self.copy(base["s3-bucket"])
         super().process(base, template)
 
 
