@@ -24,13 +24,6 @@ TEMPLATES = "templates"
 INDEX = "index.html"
 
 
-s3_client = s3fs.core.S3FileSystem(
-    key=os.getenv("S3_KEY"),
-    secret=os.getenv("S3_SECRET"),
-    client_kwargs={"endpoint_url": os.getenv("S3_URL")},
-)
-
-
 class Item:
     """
     Item base class.
@@ -117,17 +110,23 @@ class Post(Item):
 
         super().process(base, template["article"])
 
-    def copy(self, s3) -> None:
+    def copy(self, bucket: str = None) -> None:
         """
         Copy files from to.
 
         Args:
-            s3: path to s3 bucket, if used
+            bucket: s3 bucket, if used
         """
-        if s3:
-            for path in s3_client.ls(join(s3, self.from_path)):
+        if bucket:
+            client = s3fs.core.S3FileSystem(
+                key=os.getenv("S3_KEY"),
+                secret=os.getenv("S3_SECRET"),
+                client_kwargs={"endpoint_url": os.getenv("S3_URL")},
+            )
+
+            for path in client.ls(join(bucket, self.from_path)):
                 f = path.split("/")[-1]
-                s3_client.get(path, join(self.to_path, f))
+                client.get(path, join(self.to_path, f))
         else:
             try:
                 copy_tree(self.from_path, self.to_path)
