@@ -18,6 +18,7 @@ dependencies = [
     "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
+    "s3fs~=2022.11"
 ]
 
 [project.optional-dependencies]
