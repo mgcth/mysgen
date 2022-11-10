@@ -32,6 +32,6 @@ The configuration file should contain the following:
         "fenced_code",
         "mdx_math"
     ],
-    "s3-path": "mladen"
+    "s3-bucket": "mladen"
 }
 ```
