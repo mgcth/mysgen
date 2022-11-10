@@ -197,7 +197,7 @@ class ImagePost(Post):
                 path, file_id = split(image)
                 im_name_split = file_id.split(".")
                 image = im_name_split[0] + "_small." + im_name_split[1]
-                img.save(join(path, image))
+                img.save(join(path, image), quality=95)
 
             self.meta["thumbnails"].append(image)
 
