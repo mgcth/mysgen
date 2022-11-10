@@ -3,6 +3,8 @@ mysgen, a simple static site generator in Python.
 """
 from __future__ import annotations
 from ast import Str
+import os
+import s3fs
 import json
 import glob
 import markdown
@@ -108,19 +110,30 @@ class Post(Item):
 
         super().process(base, template["article"])
 
-    def copy(self) -> None:
+    def copy(self, bucket: str = None) -> None:
         """
         Copy files from to.
 
         Args:
-            item_type: item type to copy
+            bucket: s3 bucket, if used
         """
-        try:
-            copy_tree(self.from_path, self.to_path)
-        except DistutilsFileError:
-            raise DistutilsFileError(
-                "File {from_path} not found.".format(from_path=self.from_path)
+        if bucket:
+            client = s3fs.core.S3FileSystem(
+                key=os.getenv("S3_KEY"),
+                secret=os.getenv("S3_SECRET"),
+                client_kwargs={"endpoint_url": os.getenv("S3_URL")},
             )
+
+            for path in client.ls(join(bucket, self.from_path)):
+                f = path.split("/")[-1]
+                client.get(path, join(self.to_path, f))
+        else:
+            try:
+                copy_tree(self.from_path, self.to_path)
+            except DistutilsFileError:
+                raise DistutilsFileError(
+                    "File {from_path} not found.".format(from_path=self.from_path)
+                )
 
 
 class ImagePost(Post):
@@ -153,7 +166,7 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy()
+        self.copy(base["s3-bucket"])
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
@@ -183,7 +196,7 @@ class ImagePost(Post):
                 path, file_id = split(image)
                 im_name_split = file_id.split(".")
                 image = im_name_split[0] + "_small." + im_name_split[1]
-                img.save(join(path, image))
+                img.save(join(path, image), quality=95)
 
             self.meta["thumbnails"].append(image)
 
@@ -218,7 +231,7 @@ class DataPost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy()
+        self.copy(base["s3-bucket"])
         super().process(base, template)
 
 

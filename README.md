@@ -8,6 +8,7 @@
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
 The configuration file should contain the following:
+
 ```json
 {
     "author": "Name",
@@ -30,6 +31,7 @@ The configuration file should contain the following:
         "meta",
         "fenced_code",
         "mdx_math"
-    ]
+    ],
+    "s3-bucket": "mladen"
 }
 ```

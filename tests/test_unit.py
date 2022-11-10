@@ -374,17 +374,29 @@ class TestUnitPost:
         mock_item_patch_content.assert_called_once()
         mock_item_process.assert_called_once_with(base, template["article"])
 
+    @pytest.mark.parametrize("s3_bucket", [("bucket"), (False), (None)])
+    @patch("mysgen.mysgen.s3fs.core.S3FileSystem")
     @patch("mysgen.mysgen.copy_tree")
-    def test_unit_post_copy(self, mock_copy_tree):
+    def test_unit_post_copy(self, mock_copy_tree, mock_s3fs, s3_bucket):
         """
         Unit test of Post _copy method.
+
+        Args:
+            mock_s3fs: mock of s3fs
+            mock_copy_tree: mock of copy_tree
+            s3_bucket: s3 bucket
         """
         post = Post({}, "content", "src", "build")
         post.from_path = "from"
         post.to_path = "to"
-        post.copy()
+        mock_s3fs.return_value.ls.return_value = ["path/1", "path/2"]
+        post.copy(s3_bucket)
 
-        mock_copy_tree.assert_called_once_with("from", "to")
+        if s3_bucket == "bucket":
+            mock_s3fs.assert_called_once()
+            assert mock_s3fs.return_value.get.call_count == 2
+        else:
+            mock_copy_tree.assert_called_once_with("from", "to")
 
     def test_unit_post_copy_raises(self):
         """
@@ -520,7 +532,7 @@ class TestUnitDataPost:
         post.process(mock_base, mock_template)
 
         mock_post_process.assert_called_once_with(mock_base, mock_template)
-        mock_datapost_copy_data.assert_called_once_with()
+        mock_datapost_copy_data.assert_called_once()
 
 
 class TestUnitPage:
