@@ -2,11 +2,10 @@
 mysgen, a simple static site generator in Python.
 """
 from __future__ import annotations
-from ast import Str
 import os
-import s3fs
 import json
 import glob
+import boto3
 import markdown
 from PIL import Image
 from datetime import datetime
@@ -110,30 +109,16 @@ class Post(Item):
 
         super().process(base, template["article"])
 
-    def copy(self, bucket: str = None) -> None:
+    def copy(self) -> None:
         """
         Copy files from to.
-
-        Args:
-            bucket: s3 bucket, if used
         """
-        if bucket:
-            client = s3fs.core.S3FileSystem(
-                key=os.getenv("S3_KEY"),
-                secret=os.getenv("S3_SECRET"),
-                client_kwargs={"endpoint_url": os.getenv("S3_URL")},
+        try:
+            copy_tree(self.from_path, self.to_path)
+        except DistutilsFileError:
+            raise DistutilsFileError(
+                "File {from_path} not found.".format(from_path=self.from_path)
             )
-
-            for path in client.ls(join(bucket, self.from_path)):
-                f = path.split("/")[-1]
-                client.get(path, join(self.to_path, f))
-        else:
-            try:
-                copy_tree(self.from_path, self.to_path)
-            except DistutilsFileError:
-                raise DistutilsFileError(
-                    "File {from_path} not found.".format(from_path=self.from_path)
-                )
 
 
 class ImagePost(Post):
@@ -166,7 +151,7 @@ class ImagePost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy(base["s3-bucket"])
+        self.copy()
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
@@ -231,7 +216,7 @@ class DataPost(Post):
             base: base variables, copy
             template: available templates dictionary
         """
-        self.copy(base["s3-bucket"])
+        self.copy()
         super().process(base, template)
 
 
@@ -295,6 +280,10 @@ class MySGEN:
         Build site.
         """
         self.set_base_config()
+
+        if self.base["s3-bucket"]:
+            self.copy_s3()
+
         self.define_environment()
         self.find_and_parse("posts")
         self.find_and_parse("pages")
@@ -415,6 +404,24 @@ class MySGEN:
         for _, item_object in data.items():
             if item_object.meta["status"] == "published":
                 item_object.process(base, self.template)
+
+    def copy_s3(self):
+        """
+        Copy files from s3 in one go.
+        """
+        bucket = self.base["s3-bucket"]
+        client = boto3.client(
+            "s3",
+            aws_access_key_id=os.getenv("S3_KEY"),
+            aws_secret_access_key=os.getenv("S3_SECRET"),
+            endpoint_url=os.getenv("S3_URL"),
+        )
+        files = client.list_objects(Bucket=bucket)
+
+        for path in files["Contents"]:
+            f = path["Key"]
+            makedirs(join(*f.split("/")[:-1]), exist_ok=True)
+            client.download_file(bucket, f, f)
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:
         """

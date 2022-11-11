@@ -56,6 +56,8 @@ class TestUnitMySGEN:
         assert mysgen.pages == {}
         assert mysgen.markdown is None
 
+    @pytest.mark.parametrize("s3_bucket", [("bucket"), (False), (None)])
+    @patch("mysgen.mysgen.MySGEN.copy_s3")
     @patch("mysgen.mysgen.MySGEN.process")
     @patch("mysgen.mysgen.MySGEN.build_menu")
     @patch("mysgen.mysgen.MySGEN.find_and_parse")
@@ -68,13 +70,19 @@ class TestUnitMySGEN:
         mock_find_and_parse,
         mock_build_menu,
         mock_process,
+        mock_copy_s3,
+        s3_bucket,
     ):
         """
         Test MySGEN build method.
         """
         mysgen = MySGEN(CONFIG_FILE)
+        mysgen.base["s3-bucket"] = s3_bucket
         mysgen.build()
+
         mock_set_base_config.assert_called_once()
+        if s3_bucket:
+            mock_copy_s3.assert_called_once()
         mock_define_environment.assert_called_once()
         assert mock_find_and_parse.call_count == 2
         mock_build_menu.assert_called_once()
@@ -245,6 +253,27 @@ class TestUnitMySGEN:
                 )
             mock_sorted.assert_called_once()
 
+    @patch("mysgen.mysgen.makedirs")
+    @patch("mysgen.mysgen.boto3.client")
+    def test_unit_copy_s3(self, mock_client, mock_makedirs):
+        """
+        Test the copy s3 method.
+        """
+        mysgen = MySGEN()
+        mysgen.base["s3-bucket"] = "bucket"
+        mock_client.return_value.list_objects.return_value = {
+            "Contents": [
+                {"Key": "1/2/3.file"},
+                {"Key": "1/2/3.file"},
+            ]
+        }
+        mysgen.copy_s3()
+
+        mock_client.assert_called_once()
+        mock_client.return_value.list_objects.assert_called_once()
+        assert mock_makedirs.call_count == 2
+        assert mock_client.return_value.download_file.call_count == 2
+
     @patch.object(os, "listdir")
     @patch.object(MySGEN, "_parse")
     def test_unit_format_metadata(self, mock_parse_pages, mock_listdir):
@@ -374,29 +403,20 @@ class TestUnitPost:
         mock_item_patch_content.assert_called_once()
         mock_item_process.assert_called_once_with(base, template["article"])
 
-    @pytest.mark.parametrize("s3_bucket", [("bucket"), (False), (None)])
-    @patch("mysgen.mysgen.s3fs.core.S3FileSystem")
     @patch("mysgen.mysgen.copy_tree")
-    def test_unit_post_copy(self, mock_copy_tree, mock_s3fs, s3_bucket):
+    def test_unit_post_copy(self, mock_copy_tree):
         """
         Unit test of Post _copy method.
 
         Args:
-            mock_s3fs: mock of s3fs
             mock_copy_tree: mock of copy_tree
-            s3_bucket: s3 bucket
         """
         post = Post({}, "content", "src", "build")
         post.from_path = "from"
         post.to_path = "to"
-        mock_s3fs.return_value.ls.return_value = ["path/1", "path/2"]
-        post.copy(s3_bucket)
+        post.copy()
 
-        if s3_bucket == "bucket":
-            mock_s3fs.assert_called_once()
-            assert mock_s3fs.return_value.get.call_count == 2
-        else:
-            mock_copy_tree.assert_called_once_with("from", "to")
+        mock_copy_tree.assert_called_once_with("from", "to")
 
     def test_unit_post_copy_raises(self):
         """
