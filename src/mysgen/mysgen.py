@@ -416,7 +416,7 @@ class MySGEN:
             aws_secret_access_key=os.getenv("S3_SECRET"),
             endpoint_url=os.getenv("S3_URL"),
         )
-        files = client.list_all_objects(Bucket=bucket)
+        files = client.list_objects(Bucket=bucket)
 
         for path in files["Contents"]:
             f = path["Key"]

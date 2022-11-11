@@ -260,7 +260,7 @@ class TestUnitMySGEN:
         """
         mysgen = MySGEN()
         mysgen.base["s3-bucket"] = "bucket"
-        mock_client.return_value.list_all_objects.return_value = {
+        mock_client.return_value.list_objects.return_value = {
             "Contents": [
                 {"Key": 1},
                 {"Key": 2},
@@ -269,7 +269,7 @@ class TestUnitMySGEN:
         mysgen.copy_s3()
 
         mock_client.assert_called_once()
-        mock_client.return_value.list_all_objects.assert_called_once()
+        mock_client.return_value.list_objects.assert_called_once()
         assert mock_client.return_value.download_file.call_count == 2
 
     @patch.object(os, "listdir")
