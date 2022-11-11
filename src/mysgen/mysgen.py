@@ -420,6 +420,7 @@ class MySGEN:
 
         for path in files["Contents"]:
             f = path["Key"]
+            print(f)
             client.download_file(bucket, f, f)
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:
