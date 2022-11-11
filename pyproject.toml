@@ -18,14 +18,9 @@ dependencies = [
     "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
-    "s3fs~=2022.11"
+    "boto3 ~= 1.26",
 ]
 
 [project.optional-dependencies]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
-dev = [
-    "mysgen[test]",
-    "black ~= 22.8",
-    "flake8 ~= 5.0",
-    "pre-commit ~= 2.20",
-]
+dev = ["mysgen[test]", "black ~= 22.8", "flake8 ~= 5.0", "pre-commit ~= 2.20"]
