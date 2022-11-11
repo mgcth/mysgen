@@ -418,9 +418,9 @@ class MySGEN:
         )
         files = client.list_objects(Bucket=bucket)
 
-        for path in client.objects.all():
+        for path in files["Contents"]:
             f = path["Key"]
-            makedirs(join(f.split("/")[:-1]), exist_ok=True)
+            makedirs(join(*f.split("/")[:-1]), exist_ok=True)
             client.download_file(bucket, f, f)
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:

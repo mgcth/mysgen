@@ -253,8 +253,9 @@ class TestUnitMySGEN:
                 )
             mock_sorted.assert_called_once()
 
+    @patch("mysgen.mysgen.makedirs")
     @patch("mysgen.mysgen.boto3.client")
-    def test_unit_copy_s3(self, mock_client):
+    def test_unit_copy_s3(self, mock_client, mock_makedirs):
         """
         Test the copy s3 method.
         """
@@ -262,14 +263,15 @@ class TestUnitMySGEN:
         mysgen.base["s3-bucket"] = "bucket"
         mock_client.return_value.list_objects.return_value = {
             "Contents": [
-                {"Key": 1},
-                {"Key": 2},
+                {"Key": "1/2/3.file"},
+                {"Key": "1/2/3.file"},
             ]
         }
         mysgen.copy_s3()
 
         mock_client.assert_called_once()
         mock_client.return_value.list_objects.assert_called_once()
+        assert mock_makedirs.call_count == 2
         assert mock_client.return_value.download_file.call_count == 2
 
     @patch.object(os, "listdir")
