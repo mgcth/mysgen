@@ -1,6 +1,4 @@
-"""
-mysgen, a simple static site generator in Python.
-"""
+"""mysgen, a simple static site generator in Python."""
 from __future__ import annotations
 import os
 import json
@@ -24,9 +22,7 @@ INDEX = "index.html"
 
 
 class Item:
-    """
-    Item base class.
-    """
+    """Item base class."""
 
     def __init__(
         self, meta: dict, content: str, src_path: str, build_path: str
@@ -73,9 +69,7 @@ class Item:
 
 
 class Post(Item):
-    """
-    Post class.
-    """
+    """Post class."""
 
     def __init__(
         self, meta: defaultdict, content: str, src_path: str, build_path: str
@@ -110,9 +104,7 @@ class Post(Item):
         super().process(base, template["article"])
 
     def copy(self) -> None:
-        """
-        Copy files from to.
-        """
+        """Copy files from to."""
         try:
             copy_tree(self.from_path, self.to_path)
         except DistutilsFileError:
@@ -122,9 +114,7 @@ class Post(Item):
 
 
 class ImagePost(Post):
-    """
-    Image post.
-    """
+    """Image post."""
 
     def __init__(
         self, meta: defaultdict, content: str, src_path: str, build_path: str
@@ -187,9 +177,7 @@ class ImagePost(Post):
 
 
 class DataPost(Post):
-    """
-    Data post.
-    """
+    """Data post."""
 
     def __init__(
         self, meta: defaultdict, content: str, src_path: str, build_path: str
@@ -221,9 +209,7 @@ class DataPost(Post):
 
 
 class Page(Item):
-    """
-    Page class.
-    """
+    """Page class."""
 
     def __init__(
         self, meta: defaultdict, content: str, src_path: str, build_path: str
@@ -257,9 +243,7 @@ class Page(Item):
 
 
 class MySGEN:
-    """
-    MySGEN class.
-    """
+    """MySGEN class."""
 
     def __init__(self, config_file: str = CONFIG_FILE) -> None:
         """
@@ -276,9 +260,7 @@ class MySGEN:
         self.markdown = None
 
     def build(self) -> None:
-        """
-        Build site.
-        """
+        """Build site."""
         self.set_base_config()
 
         if self.base["s3-bucket"]:
@@ -292,9 +274,7 @@ class MySGEN:
         self.process("pages")
 
     def set_base_config(self) -> None:
-        """
-        Set base configuration.
-        """
+        """Set base configuration."""
         with open(self.config_file, "r") as file:
             self.base = json.loads(file.read(), object_pairs_hook=OrderedDict)
 
@@ -302,9 +282,7 @@ class MySGEN:
         self.base["categories"] = []
 
     def define_environment(self) -> None:
-        """
-        Define Jinja environment.
-        """
+        """Define Jinja environment."""
         templates_path = join(self.base["theme_path"], TEMPLATES)
         env = Environment(
             loader=FileSystemLoader(templates_path),
@@ -320,9 +298,7 @@ class MySGEN:
         self.markdown = markdown.Markdown(extensions=self.base["markdown_extensions"])
 
     def build_menu(self) -> None:
-        """
-        Build the main menu based on pages.
-        """
+        """Build the main menu based on pages."""
         names = list(self.base["menuitems"].keys())
         for page in self.pages:
             name = page.split(".")[0]
@@ -406,9 +382,7 @@ class MySGEN:
                 item_object.process(base, self.template)
 
     def copy_s3(self):
-        """
-        Copy files from s3 in one go.
-        """
+        """Copy files from s3 in one go."""
         bucket = self.base["s3-bucket"]
         client = boto3.client(
             "s3",
@@ -474,9 +448,7 @@ class MySGEN:
 
 
 def build():
-    """
-    Run MySGEN
-    """
+    """Run MySGEN"""
     if __name__ == "__main__":
         mysgen = MySGEN()
         mysgen.build()
