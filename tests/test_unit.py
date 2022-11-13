@@ -334,14 +334,14 @@ class TestUnitItem:
     @patch("builtins.open", mock_open(read_data=None))
     @patch("mysgen.mysgen.makedirs")
     @patch("mysgen.mysgen.join")
-    def test_unit_item_process(self, mock_os_path_join, mock_os_makedirs):
+    def test_unit_item_abstract_process(self, mock_os_path_join, mock_os_makedirs):
         """
-        Unit test of Item process method.
+        Unit test of Item abstract_process method.
         """
         mock_base = MagicMock()
         mock_template = MagicMock()
         item = Item(MagicMock(), MagicMock(), MagicMock(), MagicMock())
-        item.process(mock_base, mock_template)
+        item.abstract_process(mock_base, mock_template)
 
         assert mock_os_path_join.call_count == 2
         mock_os_makedirs.assert_called_once()
@@ -371,8 +371,8 @@ class TestUnitPost:
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
-        assert post.from_path is None
-        assert post.to_path is None
+        assert post.from_path == ""
+        assert post.to_path == ""
 
     @pytest.mark.parametrize(
         "meta, content, base, template",
@@ -385,7 +385,7 @@ class TestUnitPost:
             ),
         ],
     )
-    @patch("mysgen.mysgen.Item.process")
+    @patch("mysgen.mysgen.Item.abstract_process")
     @patch("mysgen.mysgen.Item._patch_content")
     def test_unit_post_process(
         self, mock_item_patch_content, mock_item_process, meta, content, base, template
@@ -575,7 +575,7 @@ class TestUnitPage:
         "path, expected_path, expected_page_name",
         [("pages/home", "", "home"), ("pages/archive", "archive", "archive")],
     )
-    @patch("mysgen.mysgen.Item.process")
+    @patch("mysgen.mysgen.Item.abstract_process")
     @patch("mysgen.mysgen.Page._patch_content")
     def test_unit_page_process(
         self,

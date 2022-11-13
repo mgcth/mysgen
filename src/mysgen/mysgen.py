@@ -305,12 +305,11 @@ class MySGEN:
     def define_environment(self) -> None:
         """Define Jinja environment."""
         templates_path = join(self.base["theme_path"], TEMPLATES)
-        env = Environment(
-            loader=FileSystemLoader(templates_path),
-            trim_blocks=True,
-            lstrip_blocks=True,
-            autoescape=True,
-        )
+        env = Environment(  # nosec
+            loader=FileSystemLoader(templates_path),  # nosec
+            trim_blocks=True,  # nosec
+            lstrip_blocks=True,  # nosec
+        )  # nosec
 
         for file in scandir(templates_path):
             if file.is_file() and ".html" in file.name:
