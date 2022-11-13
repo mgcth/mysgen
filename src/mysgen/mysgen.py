@@ -288,6 +288,7 @@ class MySGEN:
             loader=FileSystemLoader(templates_path),
             trim_blocks=True,
             lstrip_blocks=True,
+            autoescape=True,
         )
 
         for file in scandir(templates_path):
