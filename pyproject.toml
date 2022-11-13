@@ -28,7 +28,13 @@ lint = [
     "flake8-docstrings ~= 1.6",
     "flake8-black ~= 0.3",
 ]
-type = ["mypy ~= 0.990"]
+type = [
+    "mypy ~= 0.990",
+    "boto3-stubs ~= 1.26",
+    "types-Jinja2 ~= 2.11",
+    "types-Markdown ~= 3.4",
+    "types-Pillow ~= 9.3",
+]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 dev = [
     "mysgen[lint]",
