@@ -30,4 +30,10 @@ lint = [
 ]
 type = ["mypy ~= 0.990"]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
-dev = ["mysgen[lint]", "mysgen[test]", "black ~= 22.8", "pre-commit ~= 2.20"]
+dev = [
+    "mysgen[lint]",
+    "mysgen[type]",
+    "mysgen[test]",
+    "black ~= 22.8",
+    "pre-commit ~= 2.20",
+]
