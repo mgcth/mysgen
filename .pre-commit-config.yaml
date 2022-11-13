@@ -9,4 +9,19 @@ repos:
     rev: 22.8.0
     hooks:
     -   id: black
+-   repo: https://github.com/pycqa/flake8
+    rev: 5.0.4
+    hooks:
+    -   id: flake8
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "586b4f0"
+    hooks:
+    -   id: mypy
+        additional_dependencies: [
+            "boto3-stubs ~= 1.26",
+            "types-Jinja2 ~= 2.11",
+            "types-Markdown ~= 3.4",
+            "types-Pillow ~= 9.3"
+        ]
+
 exclude: "^tests/fixtures/"
