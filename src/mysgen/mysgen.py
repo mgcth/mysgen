@@ -448,7 +448,7 @@ class MySGEN:
 
 
 def build():
-    """Run MySGEN"""
+    """Run MySGEN."""
     if __name__ == "__main__":
         mysgen = MySGEN()
         mysgen.build()
