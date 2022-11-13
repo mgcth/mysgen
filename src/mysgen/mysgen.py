@@ -59,7 +59,7 @@ class Item:
 
     def _patch_content(self, pattern: str, patch: str) -> None:
         """
-        Some markdown posts contain tags that need replacing.
+        Patch markdown posts contain tags that need replacing.
 
         Args:
             pattern: pattern to search for
@@ -400,7 +400,7 @@ class MySGEN:
 
     def _format_metadata(self, meta: defaultdict) -> defaultdict:
         """
-        Custom formatting of some metadata fields.
+        Format some metadata fields.
 
         Args:
             meta: dictionary of metadata
