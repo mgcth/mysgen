@@ -6,13 +6,14 @@ import glob
 import boto3
 import markdown
 from PIL import Image
+from typing import Any
 from datetime import datetime
 from os import scandir, makedirs
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
 from os.path import join, isfile, split, relpath
 from collections import defaultdict, OrderedDict
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 
 
 # constants
@@ -25,7 +26,7 @@ class Item:
     """Item base class."""
 
     def __init__(
-        self, meta: dict, content: str, src_path: str, build_path: str
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
     ) -> None:
         """
         Initialise item object.
@@ -41,7 +42,11 @@ class Item:
         self.src_path = src_path
         self.build_path = build_path
 
-    def process(self, base: dict, template: Environment) -> None:
+    def abstract_process(
+        self,
+        base: dict[str, Any],
+        template: Template,
+    ) -> None:
         """
         Process item.
 
@@ -72,7 +77,7 @@ class Post(Item):
     """Post class."""
 
     def __init__(
-        self, meta: defaultdict, content: str, src_path: str, build_path: str
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
     ) -> None:
         """
         Initialise post object.
@@ -84,10 +89,14 @@ class Post(Item):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        self.from_path = None
-        self.to_path = None
+        self.from_path: str = ""
+        self.to_path: str = ""
 
-    def process(self, base: dict, template: dict) -> None:
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
         """
         Process all published posts.
 
@@ -101,7 +110,7 @@ class Post(Item):
         base["page"] = base["home"]
         base["page_name"] = INDEX.split(".")[0]
 
-        super().process(base, template["article"])
+        super().abstract_process(base, template["article"])
 
     def copy(self) -> None:
         """Copy files from to."""
@@ -117,7 +126,7 @@ class ImagePost(Post):
     """Image post."""
 
     def __init__(
-        self, meta: defaultdict, content: str, src_path: str, build_path: str
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
     ) -> None:
         """
         Initialise post object.
@@ -133,7 +142,11 @@ class ImagePost(Post):
         self.from_path = join(self.src_path, "images", path)
         self.to_path = join(self.build_path, self.meta["path"], "images")
 
-    def process(self, base: dict, template: dict) -> None:
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
         """
         Process all published posts.
 
@@ -180,7 +193,7 @@ class DataPost(Post):
     """Data post."""
 
     def __init__(
-        self, meta: defaultdict, content: str, src_path: str, build_path: str
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
     ) -> None:
         """
         Initialise post object.
@@ -196,7 +209,11 @@ class DataPost(Post):
         self.from_path = join(self.src_path, "data", path)
         self.to_path = join(self.build_path, self.meta["path"], "data")
 
-    def process(self, base: dict, template: dict) -> None:
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
         """
         Process all published posts.
 
@@ -212,7 +229,7 @@ class Page(Item):
     """Page class."""
 
     def __init__(
-        self, meta: defaultdict, content: str, src_path: str, build_path: str
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
     ) -> None:
         """
         Initialise page object.
@@ -225,7 +242,11 @@ class Page(Item):
         """
         super().__init__(meta, content, src_path, build_path)
 
-    def process(self, base: dict, template: dict) -> None:
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
         """
         Process all pages.
 
@@ -239,7 +260,7 @@ class Page(Item):
         self.meta["path"] = page_path
 
         self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
-        super().process(base, template[self.meta["type"]])
+        super().abstract_process(base, template[self.meta["type"]])
 
 
 class MySGEN:
@@ -253,11 +274,11 @@ class MySGEN:
             config_file: path to config file
         """
         self.config_file = config_file
-        self.base: dict = {}
-        self.template: dict = {}
-        self.posts: dict = {}
-        self.pages: dict = {}
-        self.markdown = None
+        self.base: dict[str, Any] = {}
+        self.template: dict[str, Template] = {}
+        self.posts: dict[str, Any] = {}
+        self.pages: dict[str, Any] = {}
+        self.markdown: Any = None
 
     def build(self) -> None:
         """Build site."""
@@ -353,9 +374,6 @@ class MySGEN:
         Args:
             item_type: type of item to process
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError
         """
@@ -369,7 +387,7 @@ class MySGEN:
                 p.meta for _, p in self.posts.items() if p.meta["status"] == "published"
             ]
             posts_metadata = sorted(
-                posts_metadata, key=lambda x: x["date"], reverse=True
+                posts_metadata, key=lambda x: x["date"], reverse=True  # type: ignore
             )
             base["pages"] = self.pages
             base["articles"] = posts_metadata
@@ -382,7 +400,7 @@ class MySGEN:
             if item_object.meta["status"] == "published":
                 item_object.process(base, self.template)
 
-    def copy_s3(self):
+    def copy_s3(self) -> None:
         """Copy files from s3 in one go."""
         bucket = self.base["s3-bucket"]
         client = boto3.client(
@@ -398,7 +416,7 @@ class MySGEN:
             makedirs(join(*f.split("/")[:-1]), exist_ok=True)
             client.download_file(bucket, f, f)
 
-    def _format_metadata(self, meta: defaultdict) -> defaultdict:
+    def _format_metadata(self, meta: defaultdict[str, Any]) -> defaultdict[str, Any]:
         """
         Format some metadata fields.
 
@@ -427,7 +445,7 @@ class MySGEN:
 
         return meta
 
-    def _parse(self, item_path: str) -> tuple[defaultdict, str]:
+    def _parse(self, item_path: str) -> tuple[defaultdict[str, Any], str]:
         """
         Parse items.
 
@@ -448,7 +466,7 @@ class MySGEN:
         return meta, content
 
 
-def build():
+def build() -> None:
     """Run MySGEN."""
     if __name__ == "__main__":
         mysgen = MySGEN()
