@@ -16,6 +16,9 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
+        <img src="https://img.shields.io/badge/Python-3.9-blue" alt="type checker: mypy" style="max-width: 100%;">
+    </a>
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml">
         <img src="https://img.shields.io/badge/Linter-flake8-red" alt="linter: flake8" style="max-width: 100%;">
     </a>
