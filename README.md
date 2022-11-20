@@ -32,7 +32,7 @@
 
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
-The configuration file `config.json` should contain the following:
+The configuration file `config.json` should contain the following
 
 ```json
 {
