@@ -1,6 +1,6 @@
 # mysgen
 
-<p style="text-align: center;">
+<p align="center">
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
         <img src="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml/badge.svg?branch=main" alt="build" style="max-width: 100%;">
     </a>
@@ -15,7 +15,7 @@
     </a>
 </p>
 
-<p style="text-align: center;">
+<p align="center">
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml">
         <img src="https://img.shields.io/badge/Linter-flake8-red" alt="linter: flake8" style="max-width: 100%;">
     </a>
