@@ -16,6 +16,9 @@
 </p>
 
 <p align="center">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
+        <img src="https://img.shields.io/badge/Python-3.9-blue" alt="type checker: mypy" style="max-width: 100%;">
+    </a>
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml">
         <img src="https://img.shields.io/badge/Linter-flake8-red" alt="linter: flake8" style="max-width: 100%;">
     </a>
@@ -32,7 +35,7 @@
 
 A very simple static site generator used for [mladen.gibanica.net](https://mladen.gibanica.net) built using Python and Jinja2.
 
-The configuration file should contain the following:
+The configuration file `config.json` should contain the following
 
 ```json
 {
@@ -42,7 +45,7 @@ The configuration file should contain the following:
     "timezone": "Europe/Stockholm",
     "default_lang": "en-gb",
     "theme_path": "path_to_theme",
-    "src_path": "pth_to_content",
+    "src_path": "path_to_content",
     "build_path": "path_to_build",
     "home": "home",
     "menuitems": {
@@ -59,4 +62,23 @@ The configuration file should contain the following:
     ],
     "s3-bucket": "bucket"
 }
+```
+
+Such a configuration assumes the following folder structure
+
+```text
+root/
+├─ config.json
+├─ path_to_content/
+│  ├─ data/
+│  ├─ images/
+│  ├─ pages/
+│  │  ├─ home.md
+│  │  ├─ archive.md
+│  ├─ posts/
+├─ path_to_theme/
+│  ├─ css/
+│  ├─ js/
+│  ├─ templates/
+├─ path_to_build/
 ```
