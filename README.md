@@ -1,4 +1,4 @@
-# mysgen
+<h1 align="center">mysgen<h1>
 
 <p align="center">
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
