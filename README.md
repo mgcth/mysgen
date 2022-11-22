@@ -1,14 +1,14 @@
 <h1 align="center">mysgen</h1>
 
 <p align="center">
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
-        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml/badge.svg?branch=main" alt="build" style="max-width: 100%;">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml">
+        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml/badge.svg?branch=main" alt="build" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-build.yml">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml">
         <img src="https://img.shields.io/endpoint?logo=github&labelColor=%23333a41&logoColor=%23959da5&url=https://gist.githubusercontent.com/mgcth/3362178b6b392352d136d87d280e2dbe/raw/mysgen-coverage-badge.json" alt="coverage" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml">
-        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-actions-lint.yml/badge.svg?branch=main" alt="lint" style="max-width: 100%;">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-lint.yml">
+        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-action-lint.yml/badge.svg?branch=main" alt="lint" style="max-width: 100%;">
     </a>
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-type.yaml">
         <img src="https://github.com/mgcth/mysgen/actions/workflows/github-action-type.yaml/badge.svg?branch=main" alt="type" style="max-width: 100%;">
