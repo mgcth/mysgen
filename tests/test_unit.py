@@ -105,6 +105,7 @@ class TestUnitMySGEN:
         assert mysgen.base["build_path"] == base["build_path"]
         assert mysgen.base["tags"] == []
         assert mysgen.base["tags"] == []
+        assert mysgen.base["build_date"] == datetime.now().strftime("%Y-%m-%d")
 
     def test_unit_build_menu(self):
         """
@@ -588,8 +589,13 @@ class TestUnitPage:
         """
         Unit test of Page process method.
         """
+        mock_date = datetime.now().strftime("%Y-%m-%d")
         mock_meta = {"path": path, "type": "index"}
-        mock_base = {"home": "home", "build_date": "build_date"}
+        mock_base = {
+            "home": "home",
+            "build_date": mock_date,
+            "build_date_template": "build_date",
+        }
         mock_template = MagicMock()
         page = Page(mock_meta, MagicMock(), MagicMock(), MagicMock())
         page.process(mock_base, mock_template)
@@ -597,7 +603,7 @@ class TestUnitPage:
         assert page.meta["path"] == expected_path
         assert mock_base["page_name"] == expected_page_name
         mock_page_patch_content.assert_called_once_with(
-            mock_base["build_date"], datetime.now().strftime("%Y-%m-%d")
+            mock_base["build_date_template"], mock_date
         )
         mock_item_process.assert_called_once_with(
             mock_base, mock_template[page.meta["type"]]
