@@ -56,7 +56,7 @@ The configuration file `config.json` should contain the following
         "archive": "archive"
     },
     "post_url": "{{post_url}}",
-    "build_date": "{{update_date}}",
+    "build_date_template": "{{update_date}}",
     "thumbnail_size": [300, 300],
     "markdown_extensions": [
         "meta",
