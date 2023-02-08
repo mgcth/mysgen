@@ -259,7 +259,7 @@ class Page(Item):
         page_path = "" if page_path == base["home"] else page_path
         self.meta["path"] = page_path
 
-        self._patch_content(base["build_date"], datetime.now().strftime("%Y-%m-%d"))
+        self._patch_content(base["build_date_template"], base["build_date"])
         super().abstract_process(base, template[self.meta["type"]])
 
 
@@ -301,6 +301,7 @@ class MySGEN:
 
         self.base["tags"] = []
         self.base["categories"] = []
+        self.base["build_date"] = datetime.now().strftime("%Y-%m-%d")
 
     def define_environment(self) -> None:
         """Define Jinja environment."""
