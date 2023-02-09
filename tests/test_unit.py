@@ -14,6 +14,7 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
 CONFIG_FILE = "fixtures/config.json"
+TODAY = datetime.now()
 
 
 with open(this_dir + "/fixtures/test_config.json", "r") as file:
@@ -105,7 +106,7 @@ class TestUnitMySGEN:
         assert mysgen.base["build_path"] == base["build_path"]
         assert mysgen.base["tags"] == []
         assert mysgen.base["tags"] == []
-        assert mysgen.base["build_date"] == datetime.now().strftime("%Y-%m-%d")
+        assert mysgen.base["build_date"] == datetime(TODAY.year, TODAY.month, TODAY.day)
 
     def test_unit_build_menu(self):
         """
