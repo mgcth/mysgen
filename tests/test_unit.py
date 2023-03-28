@@ -106,7 +106,9 @@ class TestUnitMySGEN:
         assert mysgen.base["build_path"] == base["build_path"]
         assert mysgen.base["tags"] == []
         assert mysgen.base["tags"] == []
-        assert mysgen.base["build_date"] == datetime(TODAY.year, TODAY.month, TODAY.day)
+        assert mysgen.base["build_date"] == str(
+            datetime(TODAY.year, TODAY.month, TODAY.day).strftime("%Y-%m-%d")
+        )
 
     def test_unit_build_menu(self):
         """
