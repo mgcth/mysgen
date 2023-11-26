@@ -23,12 +23,12 @@ jobs:
           pytest --cov-report term-missing --cov=mysgen tests
           coverage json
       - name: Export summary stats
-        if: runner.os != "Windows" && matrix.python-version == "3.11"
+        if: runner.os != 'Windows' && matrix.python-version == '3.11'
         run: |
           export TOTAL=$(python -c "import json;print(json.load(open('coverage.json'))['totals']['percent_covered_display'])")
           echo "total=$TOTAL" >> $GITHUB_ENV
       - name: Coverage badge
-        if: runner.os != "Windows" && matrix.python-version == "3.11"
+        if: runner.os != 'Windows' && matrix.python-version == '3.11'
         uses: schneegans/dynamic-badges-action@v1.6.0
         with:
           auth: ${{ secrets.BADGE_SECRET }}
