@@ -11,7 +11,7 @@ readme = "README.md"
 authors = [
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "Markdown ~= 3.3",
     "Pillow ~= 9.1",
