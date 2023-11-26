@@ -29,11 +29,11 @@ lint = [
     "flake8-black ~= 0.3",
 ]
 type = [
-    "mypy ~= 0.990",
-    "boto3-stubs ~= 1.26",
+    "mypy ~= 1.7",
+    "boto3-stubs ~= 1.29",
     "types-Jinja2 ~= 2.11",
-    "types-Markdown ~= 3.4",
-    "types-Pillow ~= 9.3",
+    "types-Markdown ~= 3.5",
+    "types-Pillow ~= 9.5",
 ]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 dev = [
