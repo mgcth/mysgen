@@ -162,11 +162,13 @@ class TestUnitMySGEN:
             ("pages", [], {}),
             ("posts", [], {}),
             ("pages", ["file"], {}),
+            ("pages", ["file"], {"data": "data"}),
             ("posts", ["file"], {"image": "image"}),
             ("posts", ["file"], {"data": "data"}),
             ("posts", ["file"], {}),
         ],
     )
+    @patch("mysgen.mysgen.DataPage")
     @patch("mysgen.mysgen.DataPost")
     @patch("mysgen.mysgen.ImagePost")
     @patch("mysgen.mysgen.Post")
@@ -181,6 +183,7 @@ class TestUnitMySGEN:
         mock_post,
         mock_imagepost,
         mock_datapost,
+        mock_datapage,
         item_type,
         files,
         meta,
@@ -205,13 +208,17 @@ class TestUnitMySGEN:
             mysgen.find_and_parse(item_type)
 
             if item_type == "pages":
-                mock_page.assert_called_once()
-            elif "image" in meta:
-                mock_imagepost.assert_called_once()
-            elif "data" in meta:
-                mock_datapost.assert_called_once()
+                if "data" in meta:
+                    mock_datapage.assert_called_once()
+                else:
+                    mock_page.assert_called_once()
             else:
-                mock_post.assert_called_once()
+                if "image" in meta:
+                    mock_imagepost.assert_called_once()
+                elif "data" in meta:
+                    mock_datapost.assert_called_once()
+                else:
+                    mock_post.assert_called_once()
 
             mock_glob.assert_called_once()
 
