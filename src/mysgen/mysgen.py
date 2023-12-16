@@ -264,6 +264,41 @@ class Page(Item):
         super().abstract_process(base, template[self.meta["type"]])
 
 
+class DataPage(Page):
+    """Data page."""
+
+    def __init__(
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+    ) -> None:
+        """
+        Initialise page object.
+
+        Args:
+            meta: meta dictionary
+            content: content string
+            src_path: src path of item
+            build_path: build path of item
+        """
+        super().__init__(meta, content, src_path, build_path)
+        path = self.meta["path"].replace("pages/", "")
+        self.from_path = join(self.src_path, "data", path)
+        self.to_path = join(self.build_path, self.meta["path"], "data")
+
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
+        """
+        Process all published pages.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
+        """
+        self.copy()
+        super().process(base, template)
+
 class MySGEN:
     """MySGEN class."""
 
