@@ -396,14 +396,14 @@ class MySGEN:
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
-                if "data" in meta:
+                if "data" in meta and meta["data"] is not False:
                     self.pages[item] = DataPage(meta, content, src_path, build_path)
                 else:
                     self.pages[item] = Page(meta, content, src_path, build_path)
             else:
-                if "image" in meta:
+                if "image" in meta and meta["image"] is not False:
                     self.posts[item] = ImagePost(meta, content, src_path, build_path)
-                elif "data" in meta:
+                elif "data" in meta and meta["data"] is not False:
                     self.posts[item] = DataPost(meta, content, src_path, build_path)
                 else:
                     self.posts[item] = Post(meta, content, src_path, build_path)
@@ -469,6 +469,10 @@ class MySGEN:
         """
         for key, value in meta.items():
             if value == "":
+                continue
+
+            if (key == "data" or key == "image") and value == "false":
+                meta[key] = False
                 continue
 
             if key == "date":
