@@ -14,14 +14,14 @@ repos:
     hooks:
     -   id: flake8
 -   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: "586b4f0"
+    rev: "4daa14b"
     hooks:
     -   id: mypy
         additional_dependencies: [
             "boto3-stubs ~= 1.26",
             "types-Jinja2 ~= 2.11",
             "types-Markdown ~= 3.4",
-            "types-Pillow ~= 9.3"
+            "types-Pillow ~= 10.1"
         ]
 
 exclude: "^tests/fixtures/"

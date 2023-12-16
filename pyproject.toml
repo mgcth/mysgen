@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.7"
 dependencies = [
     "Markdown ~= 3.3",
-    "Pillow ~= 9.1",
+    "Pillow ~= 10.1",
     "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
@@ -29,11 +29,11 @@ lint = [
     "flake8-black ~= 0.3",
 ]
 type = [
-    "mypy ~= 0.990",
+    "mypy ~= 1.7",
     "boto3-stubs ~= 1.26",
     "types-Jinja2 ~= 2.11",
     "types-Markdown ~= 3.4",
-    "types-Pillow ~= 9.3",
+    "types-Pillow ~= 10.1",
 ]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 dev = [

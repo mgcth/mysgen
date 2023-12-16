@@ -42,6 +42,8 @@ class Item:
         self.content = content
         self.src_path = src_path
         self.build_path = build_path
+        self.from_path: str = ""
+        self.to_path: str = ""
 
     def abstract_process(
         self,
@@ -73,6 +75,15 @@ class Item:
         """
         self.content = self.content.replace(pattern, patch)
 
+    def copy(self) -> None:
+        """Copy files from to."""
+        try:
+            copy_tree(self.from_path, self.to_path)
+        except DistutilsFileError:
+            raise DistutilsFileError(
+                "File {from_path} not found.".format(from_path=self.from_path)
+            )
+
 
 class Post(Item):
     """Post class."""
@@ -90,8 +101,6 @@ class Post(Item):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        self.from_path: str = ""
-        self.to_path: str = ""
 
     def process(
         self,
@@ -112,15 +121,6 @@ class Post(Item):
         base["page_name"] = INDEX.split(".")[0]
 
         super().abstract_process(base, template["article"])
-
-    def copy(self) -> None:
-        """Copy files from to."""
-        try:
-            copy_tree(self.from_path, self.to_path)
-        except DistutilsFileError:
-            raise DistutilsFileError(
-                "File {from_path} not found.".format(from_path=self.from_path)
-            )
 
 
 class ImagePost(Post):
@@ -299,6 +299,7 @@ class DataPage(Page):
         self.copy()
         super().process(base, template)
 
+
 class MySGEN:
     """MySGEN class."""
 
@@ -395,13 +396,17 @@ class MySGEN:
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
-                self.pages[item] = Page(meta, content, src_path, build_path)
-            elif "image" in meta:
-                self.posts[item] = ImagePost(meta, content, src_path, build_path)
-            elif "data" in meta:
-                self.posts[item] = DataPost(meta, content, src_path, build_path)
+                if "data" in meta:
+                    self.pages[item] = DataPage(meta, content, src_path, build_path)
+                else:
+                    self.pages[item] = Page(meta, content, src_path, build_path)
             else:
-                self.posts[item] = Post(meta, content, src_path, build_path)
+                if "image" in meta:
+                    self.posts[item] = ImagePost(meta, content, src_path, build_path)
+                elif "data" in meta:
+                    self.posts[item] = DataPost(meta, content, src_path, build_path)
+                else:
+                    self.posts[item] = Post(meta, content, src_path, build_path)
 
     def process(self, item_type: str) -> None:
         """
