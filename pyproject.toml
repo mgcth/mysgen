@@ -11,7 +11,7 @@ readme = "README.md"
 authors = [
     { name = "Mladen Gibanica", email = "11275336+mgcth@users.noreply.github.com" },
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 dependencies = [
     "Markdown ~= 3.3",
     "Pillow ~= 10.1",
@@ -30,9 +30,9 @@ lint = [
 ]
 type = [
     "mypy ~= 1.7",
-    "boto3-stubs ~= 1.26",
+    "boto3-stubs ~= 1.29",
     "types-Jinja2 ~= 2.11",
-    "types-Markdown ~= 3.4",
+    "types-Markdown ~= 3.5",
     "types-Pillow ~= 10.1",
 ]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
