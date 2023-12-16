@@ -8,7 +8,7 @@ from datetime import datetime
 from collections import OrderedDict
 from distutils.errors import DistutilsFileError
 from unittest.mock import patch, mock_open, MagicMock
-from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page, build
+from mysgen.mysgen import MySGEN, Item, Post, ImagePost, DataPost, Page, DataPage, build
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -162,11 +162,13 @@ class TestUnitMySGEN:
             ("pages", [], {}),
             ("posts", [], {}),
             ("pages", ["file"], {}),
+            ("pages", ["file"], {"data": "data"}),
             ("posts", ["file"], {"image": "image"}),
             ("posts", ["file"], {"data": "data"}),
             ("posts", ["file"], {}),
         ],
     )
+    @patch("mysgen.mysgen.DataPage")
     @patch("mysgen.mysgen.DataPost")
     @patch("mysgen.mysgen.ImagePost")
     @patch("mysgen.mysgen.Post")
@@ -181,6 +183,7 @@ class TestUnitMySGEN:
         mock_post,
         mock_imagepost,
         mock_datapost,
+        mock_datapage,
         item_type,
         files,
         meta,
@@ -205,13 +208,17 @@ class TestUnitMySGEN:
             mysgen.find_and_parse(item_type)
 
             if item_type == "pages":
-                mock_page.assert_called_once()
-            elif "image" in meta:
-                mock_imagepost.assert_called_once()
-            elif "data" in meta:
-                mock_datapost.assert_called_once()
+                if "data" in meta:
+                    mock_datapage.assert_called_once()
+                else:
+                    mock_page.assert_called_once()
             else:
-                mock_post.assert_called_once()
+                if "image" in meta:
+                    mock_imagepost.assert_called_once()
+                elif "data" in meta:
+                    mock_datapost.assert_called_once()
+                else:
+                    mock_post.assert_called_once()
 
             mock_glob.assert_called_once()
 
@@ -332,6 +339,8 @@ class TestUnitItem:
         assert item.content == "content"
         assert item.src_path == "src"
         assert item.build_path == "build"
+        assert item.from_path == ""
+        assert item.to_path == ""
 
     @patch("builtins.open", mock_open(read_data=None))
     @patch("mysgen.mysgen.makedirs")
@@ -357,6 +366,21 @@ class TestUnitItem:
 
         assert item.content == "PATCHED_me"
 
+    @patch("mysgen.mysgen.copy_tree")
+    def test_unit_item_copy(self, mock_copy_tree):
+        """
+        Unit test of Item _copy method.
+
+        Args:
+            mock_copy_tree: mock of copy_tree
+        """
+        post = Item({}, "content", "src", "build")
+        post.from_path = "from"
+        post.to_path = "to"
+        post.copy()
+
+        mock_copy_tree.assert_called_once_with("from", "to")
+
 
 class TestUnitPost:
     """
@@ -373,8 +397,6 @@ class TestUnitPost:
         assert post.content == "content"
         assert post.src_path == "src"
         assert post.build_path == "build"
-        assert post.from_path == ""
-        assert post.to_path == ""
 
     @pytest.mark.parametrize(
         "meta, content, base, template",
@@ -404,21 +426,6 @@ class TestUnitPost:
         assert base["page_name"] == "index"
         mock_item_patch_content.assert_called_once()
         mock_item_process.assert_called_once_with(base, template["article"])
-
-    @patch("mysgen.mysgen.copy_tree")
-    def test_unit_post_copy(self, mock_copy_tree):
-        """
-        Unit test of Post _copy method.
-
-        Args:
-            mock_copy_tree: mock of copy_tree
-        """
-        post = Post({}, "content", "src", "build")
-        post.from_path = "from"
-        post.to_path = "to"
-        post.copy()
-
-        mock_copy_tree.assert_called_once_with("from", "to")
 
     def test_unit_post_copy_raises(self):
         """
@@ -609,3 +616,37 @@ class TestUnitPage:
         mock_item_process.assert_called_once_with(
             mock_base, mock_template[page.meta["type"]]
         )
+
+
+class TestUnitDataPage:
+    """
+    Unit tests of DataPage class.
+    """
+
+    def test_unit_datapage_init(self):
+        """
+        Unit test of DataPage init method.
+        """
+        meta = {"path": "pages/page"}
+        page = DataPage(meta, "content", "src", "build")
+
+        assert page.meta == meta
+        assert page.content == "content"
+        assert page.src_path == "src"
+        assert page.build_path == "build"
+        assert page.from_path == "src/data/page"
+        assert page.to_path == "build/page/data"
+
+    @patch("mysgen.mysgen.DataPage.copy")
+    @patch("mysgen.mysgen.Page.process")
+    def test_unit_datapage_process(self, mock_page_process, mock_datapage_copy_data):
+        """
+        Unit test of DataPage process method.
+        """
+        mock_base = MagicMock()
+        mock_template = MagicMock()
+        page = DataPage(MagicMock(), MagicMock(), MagicMock(), MagicMock())
+        page.process(mock_base, mock_template)
+
+        mock_page_process.assert_called_once_with(mock_base, mock_template)
+        mock_datapage_copy_data.assert_called_once()

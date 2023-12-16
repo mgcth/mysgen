@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.8"
 dependencies = [
     "Markdown ~= 3.3",
-    "Pillow ~= 9.2",
+    "Pillow ~= 10.1",
     "jinja2 ~= 2.11.3",
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
@@ -33,7 +33,7 @@ type = [
     "boto3-stubs ~= 1.29",
     "types-Jinja2 ~= 2.11",
     "types-Markdown ~= 3.5",
-    "types-Pillow ~= 9.5",
+    "types-Pillow ~= 10.1",
 ]
 test = ["pytest ~= 7.1", "coverage ~= 6.5", "pytest-cov ~= 4.0"]
 dev = [
