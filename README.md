@@ -17,7 +17,7 @@
 
 <p align="center">
     <a href="https://www.python.org">
-        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10-blue" alt="type checker: mypy" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Python-3.8%20|%203.19%20|%203.10%20|%203.11-blue" alt="Python 3.8 - 3.11" style="max-width: 100%;">
     </a>
     <a href="https://pytest.org">
         <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="linter: flake8" style="max-width: 100%;">
@@ -26,7 +26,7 @@
         <img src="https://img.shields.io/badge/Linter-flake8-ff69b4" alt="linter: flake8" style="max-width: 100%;">
     </a>
     <a href="http://mypy-lang.org">
-        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="linter: flake8" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="type checker: mypy" style="max-width: 100%;">
     </a>
     <a href="https://github.com/PyCQA/bandit">
         <img src="https://img.shields.io/badge/Security-bandit-yellow.svg" alt="security: bandit" style="max-width: 100%;">
