@@ -163,8 +163,11 @@ class TestUnitMySGEN:
             ("posts", [], {}),
             ("pages", ["file"], {}),
             ("pages", ["file"], {"data": "data"}),
+            ("pages", ["file"], {"data": False}),
             ("posts", ["file"], {"image": "image"}),
+            ("posts", ["file"], {"image": False}),
             ("posts", ["file"], {"data": "data"}),
+            ("posts", ["file"], {"data": False}),
             ("posts", ["file"], {}),
         ],
     )
@@ -208,14 +211,14 @@ class TestUnitMySGEN:
             mysgen.find_and_parse(item_type)
 
             if item_type == "pages":
-                if "data" in meta:
+                if "data" in meta and meta["data"] is not False:
                     mock_datapage.assert_called_once()
                 else:
                     mock_page.assert_called_once()
             else:
-                if "image" in meta:
+                if "image" in meta and meta["image"] is not False:
                     mock_imagepost.assert_called_once()
-                elif "data" in meta:
+                elif "data" in meta and meta["data"] is not False:
                     mock_datapost.assert_called_once()
                 else:
                     mock_post.assert_called_once()
@@ -297,6 +300,8 @@ class TestUnitMySGEN:
             "tags": ["a, b"],
             "category": ["c"],
             "test": "",
+            "data": "false",
+            "image": "false",
         }
         meta_return = mysgen._format_metadata(meta)
 
@@ -305,6 +310,8 @@ class TestUnitMySGEN:
             "tags": ["a", " b"],
             "category": "c",
             "test": "",
+            "data": False,
+            "image": False,
         }
         assert meta_return == meta_answer
 
