@@ -635,7 +635,7 @@ class TestUnitDataPage:
         assert page.src_path == "src"
         assert page.build_path == "build"
         assert page.from_path == "src/data/page"
-        assert page.to_path == "build/pages/page/data"
+        assert page.to_path == "build/page/data"
 
     @patch("mysgen.mysgen.DataPage.copy")
     @patch("mysgen.mysgen.Page.process")

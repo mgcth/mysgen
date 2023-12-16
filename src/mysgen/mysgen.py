@@ -282,7 +282,7 @@ class DataPage(Page):
         super().__init__(meta, content, src_path, build_path)
         path = self.meta["path"].replace("pages/", "")
         self.from_path = join(self.src_path, "data", path)
-        self.to_path = join(self.build_path, self.meta["path"], "data")
+        self.to_path = join(self.build_path, path, "data")
 
     def process(
         self,
