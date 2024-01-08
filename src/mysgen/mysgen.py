@@ -432,6 +432,7 @@ class MySGEN:
             )
             base["pages"] = self.pages
             base["articles"] = posts_metadata
+            base["all_posts"] = self.posts
         else:
             raise NotImplementedError(
                 "Item type {item_type} not implemented.".format(item_type=item_type)
