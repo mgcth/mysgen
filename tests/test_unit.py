@@ -261,7 +261,8 @@ class TestUnitMySGEN:
             mysgen.process(item_type)
             if data["page"].meta["status"] == "published":
                 data["page"].process.assert_called_once_with(
-                    {"pages": data, "articles": "posts_metadata"}, "template"
+                    {"pages": data, "articles": "posts_metadata", "all_posts": {}},
+                    "template",
                 )
             mock_sorted.assert_called_once()
 
