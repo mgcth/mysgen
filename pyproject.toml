@@ -22,12 +22,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-lint = [
-    "flake8 ~= 5.0",
-    "flake8-bandit ~= 4.1",
-    "flake8-docstrings ~= 1.6",
-    "flake8-black ~= 0.3",
-]
+lint = [ "ruff ~= 0.1"]
 type = [
     "mypy ~= 1.7",
     "boto3-stubs ~= 1.29",
@@ -40,6 +35,5 @@ dev = [
     "mysgen[lint]",
     "mysgen[type]",
     "mysgen[test]",
-    "black ~= 22.8",
     "pre-commit ~= 2.20",
 ]
