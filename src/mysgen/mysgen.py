@@ -428,7 +428,9 @@ class MySGEN:
                 p.meta for _, p in self.posts.items() if p.meta["status"] == "published"
             ]
             posts_metadata = sorted(
-                posts_metadata, key=lambda x: x["date"], reverse=True  # type: ignore
+                posts_metadata,
+                key=lambda x: x["date"],
+                reverse=True,  # type: ignore
             )
             base["pages"] = self.pages
             base["articles"] = posts_metadata
