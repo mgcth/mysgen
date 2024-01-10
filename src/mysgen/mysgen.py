@@ -7,6 +7,7 @@ import boto3
 import shutil
 import hashlib
 import markdown
+import pillow_avif  # noqa: F401
 from PIL import Image
 from typing import Any
 from datetime import datetime
