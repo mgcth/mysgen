@@ -57,7 +57,8 @@ The configuration file `config.json` should contain the following
         "fenced_code",
         "mdx_math"
     ],
-    "s3-bucket": "bucket"
+    "s3-bucket": "bucket",
+    "mangle_image_name": true
 }
 ```
 
