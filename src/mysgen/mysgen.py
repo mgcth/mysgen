@@ -173,7 +173,7 @@ class ImagePost(Post):
             sorted_images = sorted(images)
             images = [
                 join(
-                    *split(to_image)[:-2],
+                    *split(to_image)[:-1],
                     str(i)
                     + "-"
                     + hashlib.sha256(
