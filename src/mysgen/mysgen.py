@@ -4,6 +4,8 @@ import os
 import json
 import glob
 import boto3
+import shutil
+import hashlib
 import markdown
 from PIL import Image
 from typing import Any
@@ -159,10 +161,32 @@ class ImagePost(Post):
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
-        for to_image in glob.glob(join(self.to_path, "*.*")):
-            if not isfile(to_image):
-                continue
 
+        images = [
+            to_image
+            for to_image in glob.glob(join(self.to_path, "*.*"))
+            if isfile(to_image)
+        ]
+
+        if base["mangle_image_name"]:
+            sorted_images = sorted(images)
+            images = [
+                join(
+                    *split(to_image)[:-2],
+                    str(i)
+                    + "-"
+                    + hashlib.sha256(
+                        bytearray(split(to_image)[-1].split(".")[0], "utf-8")
+                    ).hexdigest()[:7],
+                )
+                + "."
+                + to_image.split(".")[-1]
+                for i, to_image in enumerate(sorted_images)
+            ]
+            for im, im_sha in zip(sorted_images, images):
+                shutil.move(im, im_sha)
+
+        for to_image in images:
             self.meta["image_paths"].append(split(to_image)[-1])
             self._resize_image(to_image)
 
