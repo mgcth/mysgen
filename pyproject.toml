@@ -19,6 +19,7 @@ dependencies = [
     "python-markdown-math ~= 0.8",
     "MarkupSafe == 1.1.1",
     "boto3 ~= 1.26",
+    "pillow-avif-plugin ~= 1.4"
 ]
 
 [project.optional-dependencies]
