@@ -4,6 +4,7 @@ Functions to test mysgen.
 import os
 import json
 import pytest
+import hashlib
 from datetime import datetime
 from collections import OrderedDict
 from distutils.errors import DistutilsFileError
@@ -465,7 +466,10 @@ class TestUnitImagePost:
         assert post.from_path == "src/images/post"
         assert post.to_path == "build/posts/post/images"
 
-    @pytest.mark.parametrize("isfile", [(True), (False)])
+    @pytest.mark.parametrize(
+        "isfile, mangle_image_name", [(True, False), (False, False), (True, True)]
+    )
+    @patch("mysgen.mysgen.shutil.move")
     @patch("mysgen.mysgen.ImagePost._resize_image")
     @patch("mysgen.mysgen.isfile")
     @patch("mysgen.mysgen.glob.glob")
@@ -478,17 +482,19 @@ class TestUnitImagePost:
         mock_glob,
         mock_isfile,
         mock_resize_image,
+        mock_move,
         isfile,
+        mangle_image_name,
     ):
         """
         Unit test of ImagePost process method.
         """
-        mock_base = MagicMock()
+        mock_base = {"mangle_image_name": mangle_image_name, "thumbnail_size": 0}
         mock_template = MagicMock()
         post = ImagePost(
             {"path": "posts/post1.md"}, MagicMock(), MagicMock(), MagicMock()
         )
-        mock_glob.return_value = (g for g in ["path/image1.jpg", "path/image2.jpg"])
+        mock_glob.return_value = (g for g in ["path/image2.jpg", "path/image1.jpg"])
         mock_isfile.return_value = isfile
         post.process(mock_base, mock_template)
 
@@ -500,8 +506,19 @@ class TestUnitImagePost:
 
         if isfile:
             assert mock_resize_image.call_count == 2
-            assert post.meta["image_paths"] == ["image1.jpg", "image2.jpg"]
             mock_item_process.assert_called_once_with(mock_base, mock_template)
+
+            if mangle_image_name:
+                assert post.meta["image_paths"] == [
+                    "0-"
+                    + hashlib.sha256(bytearray("image1", "utf-8")).hexdigest()[:7]
+                    + ".jpg",
+                    "1-"
+                    + hashlib.sha256(bytearray("image2", "utf-8")).hexdigest()[:7]
+                    + ".jpg",
+                ]
+            else:
+                assert post.meta["image_paths"] == ["image2.jpg", "image1.jpg"]
         else:
             assert mock_resize_image.call_count == 0
             assert post.meta["image_paths"] == []
