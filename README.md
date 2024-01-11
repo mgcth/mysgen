@@ -1,10 +1,10 @@
 <h1 align="center">mysgen</h1>
 
 <p align="center">
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml">
-        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml/badge.svg?branch=main" alt="build" style="max-width: 100%;">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-test.yml">
+        <img src="https://github.com/mgcth/mysgen/actions/workflows/github-action-test.yml/badge.svg?branch=main" alt="test" style="max-width: 100%;">
     </a>
-    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-build.yml">
+    <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-test.yml">
         <img src="https://img.shields.io/endpoint?logo=github&labelColor=%23333a41&logoColor=%23959da5&url=https://gist.githubusercontent.com/mgcth/3362178b6b392352d136d87d280e2dbe/raw/mysgen-coverage-badge.json" alt="coverage" style="max-width: 100%;">
     </a>
     <a href="https://github.com/mgcth/mysgen/actions/workflows/github-action-lint.yml">
@@ -17,22 +17,16 @@
 
 <p align="center">
     <a href="https://www.python.org">
-        <img src="https://img.shields.io/badge/Python-3.9%20|%203.10-blue" alt="type checker: mypy" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Python-3.8%20|%203.9%20|%203.10%20|%203.11-blue" alt="Python 3.8 - 3.11" style="max-width: 100%;">
     </a>
     <a href="https://pytest.org">
-        <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="linter: flake8" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Testing_framework-pytest-a04000" alt="Testing framework: pytest" style="max-width: 100%;">
     </a>
-    <a href="hhttps://flake8.pycqa.org">
-        <img src="https://img.shields.io/badge/Linter-flake8-ff69b4" alt="linter: flake8" style="max-width: 100%;">
+    <a href="https://github.com/astral-sh/ruff">
+        <img src="https://img.shields.io/badge/Linter-ruff-black" alt="Linter and formatter: ruff" style="max-width: 100%;">
     </a>
     <a href="http://mypy-lang.org">
-        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="linter: flake8" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/PyCQA/bandit">
-        <img src="https://img.shields.io/badge/Security-bandit-yellow.svg" alt="security: bandit" style="max-width: 100%;">
-    </a>
-    <a href="https://github.com/psf/black">
-        <img src="https://img.shields.io/badge/Code_style-black-black" alt="code style: black" style="max-width: 100%;">
+        <img src="https://img.shields.io/badge/Type_checker-mypy-1674b1" alt="Type checker: mypy" style="max-width: 100%;">
     </a>
 </p>
 
@@ -63,7 +57,8 @@ The configuration file `config.json` should contain the following
         "fenced_code",
         "mdx_math"
     ],
-    "s3-bucket": "bucket"
+    "s3-bucket": "bucket",
+    "mangle_image_name": true
 }
 ```
 

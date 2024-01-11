@@ -23,5 +23,6 @@
         "fenced_code",
         "mdx_math"
     ],
-    "s3-bucket": false
+    "s3-bucket": false,
+    "mangle_image_name": false
 }

@@ -4,7 +4,10 @@ import os
 import json
 import glob
 import boto3
+import shutil
+import hashlib
 import markdown
+import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 from typing import Any
 from datetime import datetime
@@ -42,6 +45,8 @@ class Item:
         self.content = content
         self.src_path = src_path
         self.build_path = build_path
+        self.from_path: str = ""
+        self.to_path: str = ""
 
     def abstract_process(
         self,
@@ -73,6 +78,15 @@ class Item:
         """
         self.content = self.content.replace(pattern, patch)
 
+    def copy(self) -> None:
+        """Copy files from to."""
+        try:
+            copy_tree(self.from_path, self.to_path)
+        except DistutilsFileError:
+            raise DistutilsFileError(
+                "File {from_path} not found.".format(from_path=self.from_path)
+            )
+
 
 class Post(Item):
     """Post class."""
@@ -90,8 +104,6 @@ class Post(Item):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        self.from_path: str = ""
-        self.to_path: str = ""
 
     def process(
         self,
@@ -112,15 +124,6 @@ class Post(Item):
         base["page_name"] = INDEX.split(".")[0]
 
         super().abstract_process(base, template["article"])
-
-    def copy(self) -> None:
-        """Copy files from to."""
-        try:
-            copy_tree(self.from_path, self.to_path)
-        except DistutilsFileError:
-            raise DistutilsFileError(
-                "File {from_path} not found.".format(from_path=self.from_path)
-            )
 
 
 class ImagePost(Post):
@@ -159,10 +162,32 @@ class ImagePost(Post):
         self.meta["thumbnail_size"] = base["thumbnail_size"]
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
-        for to_image in glob.glob(join(self.to_path, "*.*")):
-            if not isfile(to_image):
-                continue
 
+        images = [
+            to_image
+            for to_image in glob.glob(join(self.to_path, "*.*"))
+            if isfile(to_image)
+        ]
+
+        if base["mangle_image_name"]:
+            sorted_images = sorted(images, reverse=True)
+            images = [
+                join(
+                    *split(to_image)[:-1],
+                    str(i)
+                    + "-"
+                    + hashlib.sha256(
+                        bytearray(split(to_image)[-1].split(".")[0], "utf-8")
+                    ).hexdigest()[:7],
+                )
+                + "."
+                + to_image.split(".")[-1]
+                for i, to_image in enumerate(sorted_images)
+            ]
+            for im, im_sha in zip(sorted_images, images):
+                shutil.move(im, im_sha)
+
+        for to_image in images:
             self.meta["image_paths"].append(split(to_image)[-1])
             self._resize_image(to_image)
 
@@ -264,6 +289,42 @@ class Page(Item):
         super().abstract_process(base, template[self.meta["type"]])
 
 
+class DataPage(Page):
+    """Data page."""
+
+    def __init__(
+        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+    ) -> None:
+        """
+        Initialise page object.
+
+        Args:
+            meta: meta dictionary
+            content: content string
+            src_path: src path of item
+            build_path: build path of item
+        """
+        super().__init__(meta, content, src_path, build_path)
+        path = self.meta["path"].replace("pages/", "")
+        self.from_path = join(self.src_path, "data", path)
+        self.to_path = join(self.build_path, path, "data")
+
+    def process(
+        self,
+        base: dict[str, Any],
+        template: dict[str, Template],
+    ) -> None:
+        """
+        Process all published pages.
+
+        Args:
+            base: base variables, copy
+            template: available templates dictionary
+        """
+        self.copy()
+        super().process(base, template)
+
+
 class MySGEN:
     """MySGEN class."""
 
@@ -362,13 +423,17 @@ class MySGEN:
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
-                self.pages[item] = Page(meta, content, src_path, build_path)
-            elif "image" in meta:
-                self.posts[item] = ImagePost(meta, content, src_path, build_path)
-            elif "data" in meta:
-                self.posts[item] = DataPost(meta, content, src_path, build_path)
+                if "data" in meta and meta["data"] is not False:
+                    self.pages[item] = DataPage(meta, content, src_path, build_path)
+                else:
+                    self.pages[item] = Page(meta, content, src_path, build_path)
             else:
-                self.posts[item] = Post(meta, content, src_path, build_path)
+                if "image" in meta and meta["image"] is not False:
+                    self.posts[item] = ImagePost(meta, content, src_path, build_path)
+                elif "data" in meta and meta["data"] is not False:
+                    self.posts[item] = DataPost(meta, content, src_path, build_path)
+                else:
+                    self.posts[item] = Post(meta, content, src_path, build_path)
 
     def process(self, item_type: str) -> None:
         """
@@ -390,10 +455,13 @@ class MySGEN:
                 p.meta for _, p in self.posts.items() if p.meta["status"] == "published"
             ]
             posts_metadata = sorted(
-                posts_metadata, key=lambda x: x["date"], reverse=True  # type: ignore
+                posts_metadata,
+                key=lambda x: x["date"],
+                reverse=True,  # type: ignore
             )
             base["pages"] = self.pages
             base["articles"] = posts_metadata
+            base["all_posts"] = self.posts
         else:
             raise NotImplementedError(
                 "Item type {item_type} not implemented.".format(item_type=item_type)
@@ -431,6 +499,10 @@ class MySGEN:
         """
         for key, value in meta.items():
             if value == "":
+                continue
+
+            if (key == "data" or key == "image") and value == "false":
+                meta[key] = False
                 continue
 
             if key == "date":

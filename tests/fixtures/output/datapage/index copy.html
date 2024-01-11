@@ -26,8 +26,8 @@
                 </script>
             </div>
         </div>
-        <div id="page_datapage" class="page" style="display: none" >
-            <div id="content_datapage" class="content ">
+        <div id="page_datapage" class="page" >
+            <div id="content_datapage" class="content ajaxHook">
                 <div id="ajax_content_page" class="ajax_content">
                     <h1 style="display: none">page</h1>
                     <div class="entry-content-page hyphenate">
@@ -36,8 +36,8 @@
                 </div>
             </div>
         </div>
-        <div id="page_page" class="page" >
-            <div id="content_page" class="content ajaxHook">
+        <div id="page_page" class="page" style="display: none" >
+            <div id="content_page" class="content ">
                 <div id="ajax_content_page" class="ajax_content">
                     <h1 style="display: none">page</h1>
                     <div class="entry-content-page hyphenate">
@@ -51,7 +51,7 @@
         <script>
             // Which page is this
             for (var i = 1; i <= pages.length; i++) {
-                if ("menu_page" == "menu_" + pages[i - 1]) {
+                if ("menu_datapage" == "menu_" + pages[i - 1]) {
                 whichPageActive = i;
                 }
             }
