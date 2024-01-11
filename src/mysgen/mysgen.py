@@ -170,7 +170,7 @@ class ImagePost(Post):
         ]
 
         if base["mangle_image_name"]:
-            sorted_images = sorted(images, reverse=True)
+            sorted_images = sorted(images)
             images = [
                 join(
                     *split(to_image)[:-1],

@@ -496,7 +496,7 @@ class TestUnitImagePost:
         post = ImagePost(
             {"path": "posts/post1.md"}, MagicMock(), MagicMock(), MagicMock()
         )
-        mock_glob.return_value = (g for g in ["path/image1.jpg", "path/image2.jpg"])
+        mock_glob.return_value = (g for g in ["path/image2.jpg", "path/image1.jpg"])
         mock_isfile.return_value = isfile
         post.process(mock_base, mock_template)
 
@@ -513,14 +513,14 @@ class TestUnitImagePost:
             if mangle_image_name:
                 assert post.meta["image_paths"] == [
                     "0-"
-                    + hashlib.sha256(bytearray("image2", "utf-8")).hexdigest()[:7]
+                    + hashlib.sha256(bytearray("image1", "utf-8")).hexdigest()[:7]
                     + ".jpg",
                     "1-"
-                    + hashlib.sha256(bytearray("image1", "utf-8")).hexdigest()[:7]
+                    + hashlib.sha256(bytearray("image2", "utf-8")).hexdigest()[:7]
                     + ".jpg",
                 ]
             else:
-                assert post.meta["image_paths"] == ["image1.jpg", "image2.jpg"]
+                assert post.meta["image_paths"] == ["image2.jpg", "image1.jpg"]
         else:
             assert mock_resize_image.call_count == 0
             assert post.meta["image_paths"] == []
