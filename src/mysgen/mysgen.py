@@ -2,7 +2,6 @@
 from __future__ import annotations
 import os
 import json
-import glob
 import boto3
 import shutil
 import hashlib
@@ -10,11 +9,13 @@ import markdown
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 from typing import Any
+from typing import Optional
 from datetime import datetime
 from os import scandir, makedirs
+from pathlib import Path, PosixPath
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
-from os.path import join, isfile, split, relpath
+from os.path import join, isfile, split
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader, Template
 
@@ -30,7 +31,11 @@ class Item:
     """Item base class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise item object.
@@ -45,8 +50,8 @@ class Item:
         self.content = content
         self.src_path = src_path
         self.build_path = build_path
-        self.from_path: str = ""
-        self.to_path: str = ""
+        self.from_path: Optional[PosixPath] = None
+        self.to_path: Optional[PosixPath] = None
 
     def abstract_process(
         self,
@@ -61,8 +66,8 @@ class Item:
             template: selected template
         """
         item_html = template.render(base)
-        path = join(self.build_path, self.meta["path"])
-        html_file = join(path, INDEX)
+        path = self.build_path / self.meta["path"]
+        html_file = path / INDEX
 
         makedirs(path, exist_ok=True)
         with open(html_file, "w") as file:
@@ -81,7 +86,7 @@ class Item:
     def copy(self) -> None:
         """Copy files from to."""
         try:
-            copy_tree(self.from_path, self.to_path)
+            copy_tree(str(self.from_path), str(self.to_path))
         except DistutilsFileError:
             raise DistutilsFileError(
                 "File {from_path} not found.".format(from_path=self.from_path)
@@ -92,7 +97,11 @@ class Post(Item):
     """Post class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -130,7 +139,11 @@ class ImagePost(Post):
     """Image post."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -142,9 +155,9 @@ class ImagePost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("posts/", "")
-        self.from_path = join(self.src_path, "images", path)
-        self.to_path = join(self.build_path, self.meta["path"], "images")
+        path = Path(*[path for path in self.meta["path"].parts if not path == "posts"])
+        self.from_path = self.src_path / "images" / path
+        self.to_path = self.build_path / self.meta["path"] / "images"
 
     def process(
         self,
@@ -163,11 +176,7 @@ class ImagePost(Post):
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
 
-        images = [
-            to_image
-            for to_image in glob.glob(join(self.to_path, "*.*"))
-            if isfile(to_image)
-        ]
+        images = [to_image for to_image in self.to_path.glob("*.*") if isfile(to_image)]
 
         if base["mangle_image_name"]:
             sorted_images = sorted(images)
@@ -219,7 +228,11 @@ class DataPost(Post):
     """Data post."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -231,9 +244,9 @@ class DataPost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("posts/", "")
-        self.from_path = join(self.src_path, "data", path)
-        self.to_path = join(self.build_path, self.meta["path"], "data")
+        path = Path(*[path for path in self.meta["path"].parts if not path == "posts"])
+        self.from_path = self.src_path / "data" / path
+        self.to_path = self.build_path / self.meta["path"] / "data"
 
     def process(
         self,
@@ -255,7 +268,11 @@ class Page(Item):
     """Page class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise page object.
@@ -280,8 +297,10 @@ class Page(Item):
             base: base variables, copy
             template: available templates dictionary
         """
-        base["page_name"] = self.meta["path"].split("/")[-1].split(".")[0]
-        page_path = self.meta["path"].replace("pages/", "")
+        base["page_name"] = self.meta["path"].stem
+        page_path = Path(
+            *[path for path in self.meta["path"].parts if not path == "pages"]
+        )
         page_path = "" if page_path == base["home"] else page_path
         self.meta["path"] = page_path
 
@@ -293,7 +312,11 @@ class DataPage(Page):
     """Data page."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise page object.
@@ -305,9 +328,9 @@ class DataPage(Page):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("pages/", "")
-        self.from_path = join(self.src_path, "data", path)
-        self.to_path = join(self.build_path, path, "data")
+        path = Path(*[path for path in self.meta["path"].parts if not path == "pages"])
+        self.from_path = self.src_path / "data" / path
+        self.to_path = self.build_path / self.meta["path"] / "data"
 
     def process(
         self,
@@ -369,7 +392,7 @@ class MySGEN:
 
     def define_environment(self) -> None:
         """Define Jinja environment."""
-        templates_path = join(self.base["theme_path"], TEMPLATES)
+        templates_path = Path(self.base["theme_path"], TEMPLATES)
         env = Environment(  # nosec
             loader=FileSystemLoader(templates_path),  # nosec
             trim_blocks=True,  # nosec
@@ -410,16 +433,16 @@ class MySGEN:
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        src_path = self.base["src_path"]
-        build_path = self.base["build_path"]
-        all_item_paths = glob.glob(join(src_path, item_type, "*.md"))
+        src_path = Path(self.base["src_path"])
+        build_path = Path(self.base["build_path"])
+        all_item_paths = Path(src_path, item_type).glob("*.md")
         if not all_item_paths:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)
             )
 
         for item_path in all_item_paths:
-            item = item_path.split("/")[-1]
+            item = item_path.parts[-1]
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
@@ -534,8 +557,8 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
             meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
-            meta["path"] = relpath(item_path, self.base["src_path"])
-            meta["path"] = meta["path"].replace(".md", "")
+            meta["path"] = Path(item_path).relative_to(self.base["src_path"])
+            meta["path"] = meta["path"].with_suffix("")
             self.markdown.reset()
 
         return meta, content
