@@ -5,6 +5,7 @@ import json
 import boto3
 import shutil
 import hashlib
+import logging
 import markdown
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
@@ -17,6 +18,10 @@ from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader, Template
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # constants
@@ -379,6 +384,7 @@ class MySGEN:
         self.build_menu()
         self.process("posts")
         self.process("pages")
+        self.copy_assets()
 
     def set_base_config(self) -> None:
         """Set base configuration."""
@@ -562,6 +568,24 @@ class MySGEN:
             self.markdown.reset()
 
         return meta, content
+
+    def copy_assets(self):
+        """Copy assets to output directory."""
+        from_assets = [
+            PosixPath(self.base["theme_path"]) / PosixPath(asset)
+            for asset in ["js", "css"]
+        ]
+
+        to_assets = [
+            PosixPath(self.base["build_path"]) / PosixPath(asset)
+            for asset in ["js", "css"]
+        ]
+
+        for from_asset, to_asset in zip(from_assets, to_assets):
+            try:
+                copy_tree(str(from_asset), str(to_asset))
+            except DistutilsFileError:
+                logger.info("File {from_path} not found.".format(from_path=from_asset))
 
 
 def build() -> None:

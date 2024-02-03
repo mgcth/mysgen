@@ -22,13 +22,13 @@ def test_integration_mysgen():
         os.path.join(path, name)
         for path, _, files in os.walk(known_output)
         for name in files
-        if name.split(".")[-1] == "html"
+        if name.split(".")[-1] in {"html", "css", "js"}
     ]
     test_files = [
         os.path.join(path, name)
         for path, _, files in os.walk(output)
         for name in files
-        if name.split(".")[-1] == "html"
+        if name.split(".")[-1] in {"html", "css", "js"}
     ]
 
     for true_f, test_f in zip(known_files, test_files):
@@ -38,4 +38,5 @@ def test_integration_mysgen():
         with open(test_f, "r") as f:
             test = f.read()
 
+        print(true_f)
         assert test == true
