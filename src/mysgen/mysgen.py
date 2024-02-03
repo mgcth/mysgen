@@ -9,10 +9,9 @@ import markdown
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
 from typing import Any
-from typing import Optional
 from datetime import datetime
 from os import scandir, makedirs
-from pathlib import Path, PosixPath
+from pathlib import PosixPath
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
 from os.path import join, isfile, split
@@ -50,8 +49,8 @@ class Item:
         self.content = content
         self.src_path = src_path
         self.build_path = build_path
-        self.from_path: Optional[PosixPath] = None
-        self.to_path: Optional[PosixPath] = None
+        self.from_path: PosixPath = PosixPath()
+        self.to_path: PosixPath = PosixPath()
 
     def abstract_process(
         self,
@@ -155,7 +154,9 @@ class ImagePost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = Path(*[path for path in self.meta["path"].parts if not path == "posts"])
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "posts"]
+        )
         self.from_path = self.src_path / "images" / path
         self.to_path = self.build_path / self.meta["path"] / "images"
 
@@ -181,16 +182,13 @@ class ImagePost(Post):
         if base["mangle_image_name"]:
             sorted_images = sorted(images)
             images = [
-                join(
-                    *split(to_image)[:-1],
+                PosixPath(
+                    to_image.parent,
                     str(i)
                     + "-"
-                    + hashlib.sha256(
-                        bytearray(split(to_image)[-1].split(".")[0], "utf-8")
-                    ).hexdigest()[:7],
+                    + hashlib.sha256(bytearray(to_image.stem, "utf-8")).hexdigest()[:7]
+                    + to_image.suffix,
                 )
-                + "."
-                + to_image.split(".")[-1]
                 for i, to_image in enumerate(sorted_images)
             ]
             for im, im_sha in zip(sorted_images, images):
@@ -202,7 +200,7 @@ class ImagePost(Post):
 
         super().process(base, template)
 
-    def _resize_image(self, image: str) -> None:
+    def _resize_image(self, image: PosixPath) -> None:
         """
         Resize post images for photo gallery.
 
@@ -216,10 +214,8 @@ class ImagePost(Post):
                     resample=Image.Resampling.LANCZOS,
                 )
 
-                path, file_id = split(image)
-                im_name_split = file_id.split(".")
-                image = im_name_split[0] + "_small." + im_name_split[1]
-                img.save(join(path, image), quality=95)
+                image_name = image.name + "_small" + image.suffix
+                img.save(image.parent / image_name, quality=95)
 
             self.meta["thumbnails"].append(image)
 
@@ -244,7 +240,9 @@ class DataPost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = Path(*[path for path in self.meta["path"].parts if not path == "posts"])
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "posts"]
+        )
         self.from_path = self.src_path / "data" / path
         self.to_path = self.build_path / self.meta["path"] / "data"
 
@@ -298,10 +296,10 @@ class Page(Item):
             template: available templates dictionary
         """
         base["page_name"] = self.meta["path"].stem
-        page_path = Path(
+        page_path = PosixPath(
             *[path for path in self.meta["path"].parts if not path == "pages"]
         )
-        page_path = "" if page_path == base["home"] else page_path
+        page_path = PosixPath() if str(page_path) == base["home"] else page_path
         self.meta["path"] = page_path
 
         self._patch_content(base["build_date_template"], str(base["build_date"]))
@@ -328,9 +326,11 @@ class DataPage(Page):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = Path(*[path for path in self.meta["path"].parts if not path == "pages"])
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "pages"]
+        )
         self.from_path = self.src_path / "data" / path
-        self.to_path = self.build_path / self.meta["path"] / "data"
+        self.to_path = self.build_path / path / "data"
 
     def process(
         self,
@@ -392,7 +392,7 @@ class MySGEN:
 
     def define_environment(self) -> None:
         """Define Jinja environment."""
-        templates_path = Path(self.base["theme_path"], TEMPLATES)
+        templates_path = PosixPath(self.base["theme_path"], TEMPLATES)
         env = Environment(  # nosec
             loader=FileSystemLoader(templates_path),  # nosec
             trim_blocks=True,  # nosec
@@ -433,9 +433,9 @@ class MySGEN:
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        src_path = Path(self.base["src_path"])
-        build_path = Path(self.base["build_path"])
-        all_item_paths = Path(src_path, item_type).glob("*.md")
+        src_path = PosixPath(self.base["src_path"])
+        build_path = PosixPath(self.base["build_path"])
+        all_item_paths = PosixPath(src_path, item_type).glob("*.md")
         if not all_item_paths:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)
@@ -543,7 +543,7 @@ class MySGEN:
 
         return meta
 
-    def _parse(self, item_path: str) -> tuple[defaultdict[str, Any], str]:
+    def _parse(self, item_path: PosixPath) -> tuple[defaultdict[str, Any], str]:
         """
         Parse items.
 
@@ -557,7 +557,7 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
             meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
-            meta["path"] = Path(item_path).relative_to(self.base["src_path"])
+            meta["path"] = PosixPath(item_path).relative_to(self.base["src_path"])
             meta["path"] = meta["path"].with_suffix("")
             self.markdown.reset()
 
