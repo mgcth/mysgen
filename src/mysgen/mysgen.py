@@ -2,7 +2,6 @@
 from __future__ import annotations
 import os
 import json
-import glob
 import boto3
 import shutil
 import hashlib
@@ -12,9 +11,10 @@ from PIL import Image
 from typing import Any
 from datetime import datetime
 from os import scandir, makedirs
+from pathlib import PosixPath
+from os.path import join, isfile
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
-from os.path import join, isfile, split, relpath
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader, Template
 
@@ -30,7 +30,11 @@ class Item:
     """Item base class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise item object.
@@ -43,10 +47,10 @@ class Item:
         """
         self.meta = meta
         self.content = content
-        self.src_path = src_path
-        self.build_path = build_path
-        self.from_path: str = ""
-        self.to_path: str = ""
+        self.src_path = PosixPath(src_path)
+        self.build_path = PosixPath(build_path)
+        self.from_path: PosixPath = PosixPath()
+        self.to_path: PosixPath = PosixPath()
 
     def abstract_process(
         self,
@@ -61,8 +65,8 @@ class Item:
             template: selected template
         """
         item_html = template.render(base)
-        path = join(self.build_path, self.meta["path"])
-        html_file = join(path, INDEX)
+        path = self.build_path / self.meta["path"]
+        html_file = path / INDEX
 
         makedirs(path, exist_ok=True)
         with open(html_file, "w") as file:
@@ -81,7 +85,7 @@ class Item:
     def copy(self) -> None:
         """Copy files from to."""
         try:
-            copy_tree(self.from_path, self.to_path)
+            copy_tree(str(self.from_path), str(self.to_path))
         except DistutilsFileError:
             raise DistutilsFileError(
                 "File {from_path} not found.".format(from_path=self.from_path)
@@ -92,7 +96,11 @@ class Post(Item):
     """Post class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -130,7 +138,11 @@ class ImagePost(Post):
     """Image post."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -142,9 +154,11 @@ class ImagePost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("posts/", "")
-        self.from_path = join(self.src_path, "images", path)
-        self.to_path = join(self.build_path, self.meta["path"], "images")
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "posts"]
+        )
+        self.from_path = self.src_path / "images" / path
+        self.to_path = self.build_path / self.meta["path"] / "images"
 
     def process(
         self,
@@ -163,37 +177,30 @@ class ImagePost(Post):
         self.meta["thumbnails"] = []
         self.meta["image_paths"] = []
 
-        images = [
-            to_image
-            for to_image in glob.glob(join(self.to_path, "*.*"))
-            if isfile(to_image)
-        ]
+        images = [to_image for to_image in self.to_path.glob("*.*") if isfile(to_image)]
 
         if base["mangle_image_name"]:
             sorted_images = sorted(images)
             images = [
-                join(
-                    *split(to_image)[:-1],
+                PosixPath(
+                    to_image.parent,
                     str(i)
                     + "-"
-                    + hashlib.sha256(
-                        bytearray(split(to_image)[-1].split(".")[0], "utf-8")
-                    ).hexdigest()[:7],
+                    + hashlib.sha256(bytearray(to_image.stem, "utf-8")).hexdigest()[:7]
+                    + to_image.suffix,
                 )
-                + "."
-                + to_image.split(".")[-1]
                 for i, to_image in enumerate(sorted_images)
             ]
             for im, im_sha in zip(sorted_images, images):
                 shutil.move(im, im_sha)
 
         for to_image in images:
-            self.meta["image_paths"].append(split(to_image)[-1])
+            self.meta["image_paths"].append(to_image.name)
             self._resize_image(to_image)
 
         super().process(base, template)
 
-    def _resize_image(self, image: str) -> None:
+    def _resize_image(self, image: PosixPath) -> None:
         """
         Resize post images for photo gallery.
 
@@ -207,10 +214,9 @@ class ImagePost(Post):
                     resample=Image.Resampling.LANCZOS,
                 )
 
-                path, file_id = split(image)
-                im_name_split = file_id.split(".")
-                image = im_name_split[0] + "_small." + im_name_split[1]
-                img.save(join(path, image), quality=95)
+                image_parent = image.parent
+                image = PosixPath(image.stem + "_small" + image.suffix)
+                img.save(image_parent / image, quality=95)
 
             self.meta["thumbnails"].append(image)
 
@@ -219,7 +225,11 @@ class DataPost(Post):
     """Data post."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise post object.
@@ -231,9 +241,11 @@ class DataPost(Post):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("posts/", "")
-        self.from_path = join(self.src_path, "data", path)
-        self.to_path = join(self.build_path, self.meta["path"], "data")
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "posts"]
+        )
+        self.from_path = self.src_path / "data" / path
+        self.to_path = self.build_path / self.meta["path"] / "data"
 
     def process(
         self,
@@ -255,7 +267,11 @@ class Page(Item):
     """Page class."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise page object.
@@ -280,9 +296,11 @@ class Page(Item):
             base: base variables, copy
             template: available templates dictionary
         """
-        base["page_name"] = self.meta["path"].split("/")[-1].split(".")[0]
-        page_path = self.meta["path"].replace("pages/", "")
-        page_path = "" if page_path == base["home"] else page_path
+        base["page_name"] = self.meta["path"].stem
+        page_path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "pages"]
+        )
+        page_path = PosixPath() if str(page_path) == base["home"] else page_path
         self.meta["path"] = page_path
 
         self._patch_content(base["build_date_template"], str(base["build_date"]))
@@ -293,7 +311,11 @@ class DataPage(Page):
     """Data page."""
 
     def __init__(
-        self, meta: defaultdict[str, Any], content: str, src_path: str, build_path: str
+        self,
+        meta: defaultdict[str, Any],
+        content: str,
+        src_path: PosixPath,
+        build_path: PosixPath,
     ) -> None:
         """
         Initialise page object.
@@ -305,9 +327,11 @@ class DataPage(Page):
             build_path: build path of item
         """
         super().__init__(meta, content, src_path, build_path)
-        path = self.meta["path"].replace("pages/", "")
-        self.from_path = join(self.src_path, "data", path)
-        self.to_path = join(self.build_path, path, "data")
+        path = PosixPath(
+            *[path for path in self.meta["path"].parts if not path == "pages"]
+        )
+        self.from_path = self.src_path / "data" / path
+        self.to_path = self.build_path / path / "data"
 
     def process(
         self,
@@ -369,7 +393,7 @@ class MySGEN:
 
     def define_environment(self) -> None:
         """Define Jinja environment."""
-        templates_path = join(self.base["theme_path"], TEMPLATES)
+        templates_path = PosixPath(self.base["theme_path"], TEMPLATES)
         env = Environment(  # nosec
             loader=FileSystemLoader(templates_path),  # nosec
             trim_blocks=True,  # nosec
@@ -378,8 +402,7 @@ class MySGEN:
 
         for file in scandir(templates_path):
             if file.is_file() and ".html" in file.name:
-                page_type, _ = file.name.split(".")
-                self.template[page_type] = env.get_template(file.name)
+                self.template[file.name.split(".")[0]] = env.get_template(file.name)
 
         self.markdown = markdown.Markdown(extensions=self.base["markdown_extensions"])
 
@@ -410,16 +433,16 @@ class MySGEN:
                 "Item type {item_type} not implemented.".format(item_type=item_type)
             )
 
-        src_path = self.base["src_path"]
-        build_path = self.base["build_path"]
-        all_item_paths = glob.glob(join(src_path, item_type, "*.md"))
+        src_path = PosixPath(self.base["src_path"])
+        build_path = PosixPath(self.base["build_path"])
+        all_item_paths = PosixPath(src_path, item_type).glob("*.md")
         if not all_item_paths:
             raise FileNotFoundError(
                 "Item {item_type} not found.".format(item_type=item_type)
             )
 
         for item_path in all_item_paths:
-            item = item_path.split("/")[-1]
+            item = item_path.parts[-1]
             meta, content = self._parse(item_path)
 
             if item_type == "pages":
@@ -520,7 +543,7 @@ class MySGEN:
 
         return meta
 
-    def _parse(self, item_path: str) -> tuple[defaultdict[str, Any], str]:
+    def _parse(self, item_path: PosixPath) -> tuple[defaultdict[str, Any], str]:
         """
         Parse items.
 
@@ -534,8 +557,8 @@ class MySGEN:
         with open(item_path, "r") as file:
             content = self.markdown.convert(file.read())
             meta = self._format_metadata(defaultdict(lambda: "", self.markdown.Meta))
-            meta["path"] = relpath(item_path, self.base["src_path"])
-            meta["path"] = meta["path"].replace(".md", "")
+            meta["path"] = PosixPath(item_path).relative_to(self.base["src_path"])
+            meta["path"] = meta["path"].with_suffix("")
             self.markdown.reset()
 
         return meta, content
