@@ -5,6 +5,7 @@ import json
 import boto3
 import shutil
 import hashlib
+import logging
 import markdown
 import pillow_avif  # type: ignore # noqa: F401
 from PIL import Image
@@ -17,6 +18,10 @@ from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader, Template
+
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 # constants
@@ -580,9 +585,7 @@ class MySGEN:
             try:
                 copy_tree(str(from_asset), str(to_asset))
             except DistutilsFileError:
-                raise DistutilsFileError(
-                    "File {from_path} not found.".format(from_path=from_asset)
-                )
+                logger.info("File {from_path} not found.".format(from_path=from_asset))
 
 
 def build() -> None:
