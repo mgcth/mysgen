@@ -5,6 +5,7 @@ import os
 import json
 import pytest
 import hashlib
+from pathlib import PosixPath
 from datetime import datetime
 from collections import OrderedDict
 from distutils.errors import DistutilsFileError
@@ -161,17 +162,17 @@ class TestUnitMySGEN:
     @pytest.mark.parametrize(
         "item_type, files, meta",
         [
-            ("unknown", [], {}),
-            ("pages", [], {}),
-            ("posts", [], {}),
-            ("pages", ["file"], {}),
-            ("pages", ["file"], {"data": "data"}),
-            ("pages", ["file"], {"data": False}),
-            ("posts", ["file"], {"image": "image"}),
-            ("posts", ["file"], {"image": False}),
-            ("posts", ["file"], {"data": "data"}),
-            ("posts", ["file"], {"data": False}),
-            ("posts", ["file"], {}),
+            (PosixPath("unknown"), [], {}),
+            (PosixPath("pages"), [], {}),
+            (PosixPath("posts"), [], {}),
+            (PosixPath("pages"), ["file"], {}),
+            (PosixPath("pages"), ["file"], {"data": "data"}),
+            (PosixPath("pages"), ["file"], {"data": False}),
+            (PosixPath("posts"), ["file"], {"image": "image"}),
+            (PosixPath("posts"), ["file"], {"image": False}),
+            (PosixPath("posts"), ["file"], {"data": "data"}),
+            (PosixPath("posts"), ["file"], {"data": False}),
+            (PosixPath("posts"), ["file"], {}),
         ],
     )
     @patch("mysgen.mysgen.DataPage")
@@ -180,7 +181,7 @@ class TestUnitMySGEN:
     @patch("mysgen.mysgen.Post")
     @patch("mysgen.mysgen.Page")
     @patch("mysgen.mysgen.MySGEN._parse")
-    @patch("mysgen.mysgen.glob.glob")
+    @patch("mysgen.mysgen.PosixPath.glob")
     def test_unit_find_and_parse(
         self,
         mock_glob,
@@ -198,7 +199,10 @@ class TestUnitMySGEN:
         Test MySGEN find_and_parse method.
         """
         mysgen = MySGEN(CONFIG_FILE)
-        mysgen.base = {"src_path": "content", "build_path": "output"}
+        mysgen.base = {
+            "src_path": PosixPath("content"),
+            "build_path": PosixPath("output"),
+        }
         mock_glob.return_value = files
         if item_type != "posts" and item_type != "pages":
             with pytest.raises(NotImplementedError):
@@ -327,9 +331,9 @@ class TestUnitMySGEN:
         Test the parse pages method.
         """
         mysgen = MySGEN(CONFIG_FILE)
-        mysgen.base = MagicMock()
+        mysgen.base = {"src_path": "tests/fixtures/"}
         mysgen.markdown = mock_markdown
-        meta, content = mysgen._parse(MagicMock())
+        meta, content = mysgen._parse(PosixPath("tests/fixtures/content/posts/post.md"))
 
         assert meta == mock_format_metadata.return_value
         assert content == mock_markdown.convert.return_value
@@ -344,19 +348,18 @@ class TestUnitItem:
         """
         Unit test of Item init method.
         """
-        item = Item({}, "content", "src", "build")
+        item = Item({}, "content", PosixPath("src"), PosixPath("build"))
 
         assert item.meta == {}
         assert item.content == "content"
-        assert item.src_path == "src"
-        assert item.build_path == "build"
-        assert item.from_path == ""
-        assert item.to_path == ""
+        assert item.src_path == PosixPath("src")
+        assert item.build_path == PosixPath("build")
+        assert item.from_path == PosixPath()
+        assert item.to_path == PosixPath()
 
     @patch("builtins.open", mock_open(read_data=None))
     @patch("mysgen.mysgen.makedirs")
-    @patch("mysgen.mysgen.join")
-    def test_unit_item_abstract_process(self, mock_os_path_join, mock_os_makedirs):
+    def test_unit_item_abstract_process(self, mock_os_makedirs):
         """
         Unit test of Item abstract_process method.
         """
@@ -365,7 +368,6 @@ class TestUnitItem:
         item = Item(MagicMock(), MagicMock(), MagicMock(), MagicMock())
         item.abstract_process(mock_base, mock_template)
 
-        assert mock_os_path_join.call_count == 2
         mock_os_makedirs.assert_called_once()
 
     def test_unit_item_patch_content(self):
@@ -402,12 +404,12 @@ class TestUnitPost:
         """
         Unit test of Post init method.
         """
-        post = Post({}, "content", "src", "build")
+        post = Post({}, "content", PosixPath("src"), PosixPath("build"))
 
         assert post.meta == {}
         assert post.content == "content"
-        assert post.src_path == "src"
-        assert post.build_path == "build"
+        assert post.src_path == PosixPath("src")
+        assert post.build_path == PosixPath("build")
 
     @pytest.mark.parametrize(
         "meta, content, base, template",
@@ -458,15 +460,15 @@ class TestUnitImagePost:
         """
         Unit test of ImagePost init method.
         """
-        meta = {"path": "posts/post"}
-        post = ImagePost(meta, "content", "src", "build")
+        meta = {"path": PosixPath("posts/post")}
+        post = ImagePost(meta, "content", PosixPath("src"), PosixPath("build"))
 
         assert post.meta == meta
         assert post.content == "content"
-        assert post.src_path == "src"
-        assert post.build_path == "build"
-        assert post.from_path == "src/images/post"
-        assert post.to_path == "build/posts/post/images"
+        assert post.src_path == PosixPath("src")
+        assert post.build_path == PosixPath("build")
+        assert post.from_path == PosixPath("src/images/post")
+        assert post.to_path == PosixPath("build/posts/post/images")
 
     @pytest.mark.parametrize(
         "isfile, mangle_image_name", [(True, False), (False, False), (True, True)]
@@ -474,7 +476,7 @@ class TestUnitImagePost:
     @patch("mysgen.mysgen.shutil.move")
     @patch("mysgen.mysgen.ImagePost._resize_image")
     @patch("mysgen.mysgen.isfile")
-    @patch("mysgen.mysgen.glob.glob")
+    @patch("mysgen.mysgen.PosixPath.glob")
     @patch("mysgen.mysgen.Post.copy")
     @patch("mysgen.mysgen.Post.process")
     def test_unit_imagepost_process(
@@ -494,9 +496,11 @@ class TestUnitImagePost:
         mock_base = {"mangle_image_name": mangle_image_name, "thumbnail_size": 0}
         mock_template = MagicMock()
         post = ImagePost(
-            {"path": "posts/post1.md"}, MagicMock(), MagicMock(), MagicMock()
+            {"path": PosixPath("posts/post1.md")}, MagicMock(), MagicMock(), MagicMock()
         )
-        mock_glob.return_value = (g for g in ["path/image2.jpg", "path/image1.jpg"])
+        mock_glob.return_value = (
+            PosixPath(g) for g in ["path/image2.jpg", "path/image1.jpg"]
+        )
         mock_isfile.return_value = isfile
         post.process(mock_base, mock_template)
 
@@ -530,10 +534,10 @@ class TestUnitImagePost:
         "path, image_size, thumbnail_size, thumbnails",
         [
             (
-                "posts/path/images/image1.jpg",
+                PosixPath("posts/path/images/image1.jpg"),
                 (400, 400),
                 [300, 300],
-                "image1_small.jpg",
+                PosixPath("image1_small.jpg"),
             )
         ],
     )
@@ -566,15 +570,15 @@ class TestUnitDataPost:
         """
         Unit test of DataPost init method.
         """
-        meta = {"path": "posts/post"}
-        post = DataPost(meta, "content", "src", "build")
+        meta = {"path": PosixPath("posts/post")}
+        post = DataPost(meta, "content", PosixPath("src"), PosixPath("build"))
 
         assert post.meta == meta
         assert post.content == "content"
-        assert post.src_path == "src"
-        assert post.build_path == "build"
-        assert post.from_path == "src/data/post"
-        assert post.to_path == "build/posts/post/data"
+        assert post.src_path == PosixPath("src")
+        assert post.build_path == PosixPath("build")
+        assert post.from_path == PosixPath("src/data/post")
+        assert post.to_path == PosixPath("build/posts/post/data")
 
     @patch("mysgen.mysgen.DataPost.copy")
     @patch("mysgen.mysgen.Post.process")
@@ -600,16 +604,19 @@ class TestUnitPage:
         """
         Unit test of Page init method.
         """
-        page = Page({}, "content", "src", "build")
+        page = Page({}, "content", PosixPath("src"), PosixPath("build"))
 
         assert page.meta == {}
         assert page.content == "content"
-        assert page.src_path == "src"
-        assert page.build_path == "build"
+        assert page.src_path == PosixPath("src")
+        assert page.build_path == PosixPath("build")
 
     @pytest.mark.parametrize(
         "path, expected_path, expected_page_name",
-        [("pages/home", "", "home"), ("pages/archive", "archive", "archive")],
+        [
+            (PosixPath("pages/home"), PosixPath(""), "home"),
+            (PosixPath("pages/archive"), PosixPath("archive"), "archive"),
+        ],
     )
     @patch("mysgen.mysgen.Item.abstract_process")
     @patch("mysgen.mysgen.Page._patch_content")
@@ -654,15 +661,15 @@ class TestUnitDataPage:
         """
         Unit test of DataPage init method.
         """
-        meta = {"path": "pages/page"}
-        page = DataPage(meta, "content", "src", "build")
+        meta = {"path": PosixPath("pages/page")}
+        page = DataPage(meta, "content", PosixPath("src"), PosixPath("build"))
 
         assert page.meta == meta
         assert page.content == "content"
-        assert page.src_path == "src"
-        assert page.build_path == "build"
-        assert page.from_path == "src/data/page"
-        assert page.to_path == "build/page/data"
+        assert page.src_path == PosixPath("src")
+        assert page.build_path == PosixPath("build")
+        assert page.from_path == PosixPath("src/data/page")
+        assert page.to_path == PosixPath("build/page/data")
 
     @patch("mysgen.mysgen.DataPage.copy")
     @patch("mysgen.mysgen.Page.process")

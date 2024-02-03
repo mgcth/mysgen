@@ -12,9 +12,9 @@ from typing import Any
 from datetime import datetime
 from os import scandir, makedirs
 from pathlib import PosixPath
+from os.path import join, isfile
 from distutils.dir_util import copy_tree
 from distutils.errors import DistutilsFileError
-from os.path import join, isfile, split
 from collections import defaultdict, OrderedDict
 from jinja2 import Environment, FileSystemLoader, Template
 
@@ -47,8 +47,8 @@ class Item:
         """
         self.meta = meta
         self.content = content
-        self.src_path = src_path
-        self.build_path = build_path
+        self.src_path = PosixPath(src_path)
+        self.build_path = PosixPath(build_path)
         self.from_path: PosixPath = PosixPath()
         self.to_path: PosixPath = PosixPath()
 
@@ -195,7 +195,7 @@ class ImagePost(Post):
                 shutil.move(im, im_sha)
 
         for to_image in images:
-            self.meta["image_paths"].append(split(to_image)[-1])
+            self.meta["image_paths"].append(to_image.name)
             self._resize_image(to_image)
 
         super().process(base, template)
@@ -214,8 +214,9 @@ class ImagePost(Post):
                     resample=Image.Resampling.LANCZOS,
                 )
 
-                image_name = image.name + "_small" + image.suffix
-                img.save(image.parent / image_name, quality=95)
+                image_parent = image.parent
+                image = PosixPath(image.stem + "_small" + image.suffix)
+                img.save(image_parent / image, quality=95)
 
             self.meta["thumbnails"].append(image)
 
@@ -401,8 +402,7 @@ class MySGEN:
 
         for file in scandir(templates_path):
             if file.is_file() and ".html" in file.name:
-                page_type, _ = file.name.split(".")
-                self.template[page_type] = env.get_template(file.name)
+                self.template[file.name.split(".")[0]] = env.get_template(file.name)
 
         self.markdown = markdown.Markdown(extensions=self.base["markdown_extensions"])
 
