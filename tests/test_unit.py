@@ -66,8 +66,10 @@ class TestUnitMySGEN:
     @patch("mysgen.mysgen.MySGEN.find_and_parse")
     @patch("mysgen.mysgen.MySGEN.define_environment")
     @patch("mysgen.mysgen.MySGEN.set_base_config")
+    @patch("mysgen.mysgen.MySGEN.copy_assets")
     def test_unit_mysgen_build(
         self,
+        mock_copy_assets,
         mock_set_base_config,
         mock_define_environment,
         mock_find_and_parse,
@@ -90,6 +92,7 @@ class TestUnitMySGEN:
         assert mock_find_and_parse.call_count == 2
         mock_build_menu.assert_called_once()
         assert mock_process.call_count == 2
+        mock_copy_assets.assert_called_once()
 
     @patch("builtins.open", mock_open(read_data=test_config))
     def test_unit_mysgen_set_base_config(self):
@@ -337,6 +340,20 @@ class TestUnitMySGEN:
 
         assert meta == mock_format_metadata.return_value
         assert content == mock_markdown.convert.return_value
+
+    @patch("mysgen.mysgen.copy_tree")
+    def test_unit_copy_assets(self, mock_copy_tree):
+        """
+        Unit test of MySGEN copy_assets method.
+
+        Args:
+            mock_copy_tree: mock of copy_tree
+        """
+        mysgen = MySGEN("tests/fixtures/test_config.json")
+        mysgen.set_base_config()
+        mysgen.copy_assets()
+
+        assert mock_copy_tree.call_count == 2
 
 
 class TestUnitItem:

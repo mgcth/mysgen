@@ -379,6 +379,7 @@ class MySGEN:
         self.build_menu()
         self.process("posts")
         self.process("pages")
+        self.copy_assets()
 
     def set_base_config(self) -> None:
         """Set base configuration."""
@@ -562,6 +563,26 @@ class MySGEN:
             self.markdown.reset()
 
         return meta, content
+
+    def copy_assets(self):
+        """Copy assets to output directory."""
+        from_assets = [
+            PosixPath(self.base["theme_path"]) / PosixPath(asset)
+            for asset in ["js", "css"]
+        ]
+
+        to_assets = [
+            PosixPath(self.base["build_path"]) / PosixPath(asset)
+            for asset in ["js", "css"]
+        ]
+
+        for from_asset, to_asset in zip(from_assets, to_assets):
+            try:
+                copy_tree(str(from_asset), str(to_asset))
+            except DistutilsFileError:
+                raise DistutilsFileError(
+                    "File {from_path} not found.".format(from_path=from_asset)
+                )
 
 
 def build() -> None:
